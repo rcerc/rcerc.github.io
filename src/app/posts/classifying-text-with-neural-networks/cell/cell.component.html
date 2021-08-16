@@ -1,0 +1,8 @@
+<pre #hljs class="hljs"></pre>
+<div *ngIf="outputs?.length">
+  Output:
+  <pre class="hljs" *ngFor="let o of outputs">{{ o }}</pre>
+</div>
+<div #wrapper hidden>
+  <ng-content></ng-content>
+</div>

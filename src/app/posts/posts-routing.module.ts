@@ -3,11 +3,13 @@ import { RouterModule, Routes } from '@angular/router';
 
 const routes: Routes = [
   {
-    path: 'rnn-nlp',
+    path: 'classifying-text-with-neural-networks',
     loadChildren: () =>
-      import('./rnn-nlp/rnn-nlp.module').then((m) => m.RnnNlpModule),
+      import(
+        './classifying-text-with-neural-networks/classifying-text-with-neural-networks.module'
+      ).then((m) => m.ClassifyingTextWithNeuralNetworksModule),
   },
-  { path: '**', redirectTo: 'rnn-nlp' },
+  { path: '**', redirectTo: 'classifying-text-with-neural-networks' },
 ];
 
 @NgModule({

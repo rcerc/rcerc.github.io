@@ -1,0 +1,58 @@
+@use "styles/code";
+
+:host {
+  background-color: linen;
+  display: block;
+  text-align: center;
+  width: 100%;
+}
+
+#column {
+  display: inline-block;
+  box-sizing: border-box;
+  max-width: min(40em, 100%);
+  overflow-wrap: break-word;
+  padding: clamp(0px, 50vw - 20em, 20vh) 8px;
+  text-align: center;
+
+  p {
+    text-align: justify;
+    text-indent: 2em;
+  }
+}
+
+code,
+kbd {
+  border-radius: 2px;
+  color: linen;
+  padding: 3px 4px;
+  line-height: 1.6em;
+}
+
+code {
+  background-color: black;
+}
+
+kbd {
+  background-color: silver;
+  color: black;
+}
+
+polyline {
+  fill: none;
+}
+
+line,
+polyline {
+  stroke: black;
+  stroke-linecap: square;
+  stroke-width: 2px;
+
+  &.arrow {
+    marker-end: url(#head);
+  }
+
+  &.diode {
+    marker-end: url(#diode);
+  }
+}

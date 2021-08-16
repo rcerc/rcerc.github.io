@@ -1,0 +1,1347 @@
+<svg style="position: absolute" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker
+      id="diode"
+      orient="auto"
+      markerWidth="13"
+      markerHeight="4"
+      refX="12"
+      refY="2"
+    >
+      <polygon points="0,0 0,4 4,2"></polygon>
+    </marker>
+    <marker
+      id="head"
+      orient="auto"
+      markerWidth="13"
+      markerHeight="4"
+      refX="12"
+      refY="2"
+    >
+      <line
+        x1="1"
+        y1="2"
+        x2="13"
+        y2="2"
+        style="stroke: linen"
+        stroke-width="3"
+      ></line>
+      <polygon points="0,0 0,4 4,2"></polygon>
+    </marker>
+    <g id="ellipsis">
+      <use href="#empty" />
+      <text text-anchor="middle" dominant-baseline="middle">···</text>
+    </g>
+    <circle id="dot" r="16"></circle>
+    <g id="el-sum">
+      <use href="#dot" />
+      <line x1="-8" x2="8" style="stroke: linen" />
+      <line y1="-8" y2="8" style="stroke: linen" />
+    </g>
+    <g id="el-prod">
+      <use href="#dot" />
+      <circle r="2" fill="linen" />
+      <circle r="12" fill="none" stroke="linen" stroke-width="2" />
+    </g>
+    <rect id="layer" x="-16" y="-16" width="32" height="32" />
+    <rect id="cell" x="-16" y="-16" width="32" height="32" rx="8" />
+    <use id="empty" href="#layer" fill="linen" />
+    <rect id="intersection" x="-8" y="-8" width="16" height="16" fill="linen" />
+    <text
+      id="sigmoid"
+      fill="linen"
+      text-anchor="middle"
+      dominant-baseline="middle"
+      style="font-size: 24px"
+    >
+      σ
+    </text>
+    <text
+      id="tanh"
+      fill="linen"
+      text-anchor="middle"
+      dominant-baseline="middle"
+      style="font-size: 12px"
+    >
+      tanh
+    </text>
+    <text
+      id="one-minus"
+      fill="linen"
+      text-anchor="middle"
+      dominant-baseline="middle"
+      style="font-size: 18px"
+    >
+      1-
+    </text>
+    <g id="el-sigmoid">
+      <use href="#dot"></use>
+      <use href="#sigmoid"></use>
+    </g>
+    <g id="el-tanh">
+      <use href="#dot"></use>
+      <use href="#tanh"></use>
+    </g>
+    <g id="el-one-minus">
+      <use href="#dot"></use>
+      <use href="#one-minus"></use>
+    </g>
+    <g id="layer-sigmoid">
+      <use href="#layer"></use>
+      <use href="#sigmoid"></use>
+    </g>
+    <g id="layer-tanh">
+      <use href="#layer"></use>
+      <use href="#tanh"></use>
+    </g>
+  </defs>
+</svg>
+<div id="column">
+  <h1 id="title">Classifying Text With Neural Networks</h1>
+  <p>
+    You might have heard of recurrent neural networks (RNNs) and the role they
+    play in natural language processing (NLP). This post hopes to shine some
+    light on what RNNs are, how they have been used in text analysis, the
+    modifications made to them over time and how one can build their own RNN and
+    train it in Python using TensorFlow, a flexible machine learning library.
+  </p>
+  <p>
+    This post assumes the reader is more or less familiar with neural networks
+    and related terms, such as weights, biases, neurons and activation
+    functions. If you aren’t sure what these are or just need to brush up, I
+    recommend going over
+    <a
+      href="https://www.youtube.com/playlist?list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi"
+      >3blue1brown’s</a
+    >
+    or
+    <a
+      href="https://www.youtube.com/watch?v=ZzWaow1Rvho&list=PLxt59R_fWVzT9bDxA76AHm3ig0Gg9S3So"
+      >giant_neural_network’s</a
+    >
+    neural network courses.
+  </p>
+  <h2>The Plot</h2>
+  <p>
+    Alice hosts an online book store. She has a decent amount of regular
+    customers, who usually leave reviews in the form of text and a corresponding
+    numerical rating from one to five on her website. To simplify the review
+    process, Alice would like to automatically give customers a suggestion for
+    the numerical rating based on the review text. Her customers can either
+    choose the suggested ratings, or select their own if they see it fit.
+  </p>
+  <p>
+    Fortunately, Alice is familiar with neural networks, which, to her, seem to
+    be almost perfect solutions to her troubles. She plans to assign a number to
+    each word in a review, then feed these numbers through a neural network. She
+    believes that once trained, the output could accurately match the rating her
+    average customer might place.
+  </p>
+  <p>
+    Alice quickly runs into a problem. Some of the book reviews on her site are
+    relatively long. She speculates that she would have to trim certain reviews
+    before feeding them through her network to ensure they fit if she was to use
+    a regular feedforward one. This might lead to the network inaccurately
+    suggesting a rating if the trimmed text contained crucial information to the
+    review. Alice needs a mechanism that can handle variable-length inputs. This
+    is where RNNs come in.
+  </p>
+  <h2>Recurrent Neural Networks</h2>
+  <p>
+    An RNN (recurrent neural network) is a series of identical ‘cells’ (usually
+    a cell is a single network layer, but can also be a complete network), one
+    present at each moment in time (also called a timestep), that are chained
+    together. More specifically, the output of one cell at one point in time is
+    passed to the next cell, in addition to new input. This enables the network
+    to retain and reuse information stored in the connections between cells over
+    time and is <em>the</em> reason RNNs have been and are used in numerous
+    applications, including speech and handwriting recognition, time series
+    prediction, robot control and even music composition!
+  </p>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -16 416 224">
+    <defs>
+      <g id="segment">
+        <line class="arrow" x1="64" y1="64" x2="64" />
+        <line class="arrow" y1="64" x2="128" y2="64" />
+        <line class="arrow" y1="128" y2="64" />
+        <use href="#cell" y="64" />
+        <use href="#empty" y="128"></use>
+        <text text-anchor="middle" dominant-baseline="middle" x="64">out</text>
+        <text
+          text-anchor="middle"
+          dominant-baseline="middle"
+          y="64"
+          fill="linen"
+          font-size="12px"
+        >
+          cell
+        </text>
+        <text text-anchor="middle" dominant-baseline="middle" y="128">in</text>
+      </g>
+    </defs>
+    <use href="#segment" />
+    <use href="#segment" x="128" />
+    <use href="#segment" x="256" />
+    <use href="#ellipsis" x="384" y="64" />
+    <line class="arrow" y1="192" x2="416" y2="192" />
+    <text text-anchor="middle" x="192" y="190">time</text>
+  </svg>
+  <p>
+    Now let’s look at a concrete example of a cell. In the figure below we
+    represent a layer as a black square that at timestep \(t\) computes its
+    output \(h_t\) based on the value of the previous cell \(h_{{ "{t-1}" }}\)
+    and the input \(x_t\) using the sigmoid activation function. This layer is
+    the RNN’s cell.
+  </p>
+  <svg xmlns="http://www.w3.org/2000/svg" height="120" viewBox="0 0 158 90">
+    <g transform="translate(20, 16)">
+      <line class="arrow" x2="64"></line>
+      <line class="arrow" x1="64" x2="128"></line>
+      <line class="arrow" x1="64" y1="64" x2="64"></line>
+      <use x="64" href="#layer-sigmoid"></use>
+      <rect x="-20" y="-10" width="40" height="20" fill="linen"></rect>
+      <foreignObject x="-20" y="-10" width="40" height="22"
+        >\(h_{{ "{t-1}" }}\)</foreignObject
+      >
+      <foreignObject x="118" y="-10" width="20" height="22"
+        >\(h_t\)</foreignObject
+      >
+      <rect x="54" y="55" width="20" height="18" fill="linen"></rect>
+      <foreignObject x="54" y="55" width="20" height="18"
+        >\(x_t\)</foreignObject
+      >
+    </g>
+  </svg>
+  <p>
+    To express all this mathematically, we’ll consider \(W\) as the matrix of
+    weights that are to be applied to \(x_t\), where each row in \(W\)
+    corresponds to a neuron in the cell. Another matrix of weights, \(U\), is
+    applied to the previous cell’s output \(h_{{ "{t-1}" }}\). A bias (\(b\)) is
+    also added to offset the sum to a desired value. Finally, the output of the
+    cell at time t will be:
+  </p>
+  \(h_t=\sigma (Wx_t+Uh_{{ "{t-1}" }}+b)\)
+  <p>
+    In most cases, NLP included, \(h_t\) is simply fed to the next cell.
+    However, in other cases, \(h_t\) is kept and processed later in addition to
+    being fed to the next cell. For example, \(h_t\) of an RNN that classifies
+    handwritten letters could encode various characteristics of the written
+    letter which are later used to identify it.
+  </p>
+  <p>
+    Note that since there is no cell (thus no output) at \(t = 0\) (simply
+    because the chain of cells begins at timestep 1, \(U h_0\) (the output) is
+    omitted from the sum of weighted inputs and biases:
+  </p>
+  \(h_1 = \sigma(W x_t + b)\)
+  <p>
+    RNNs are particularly useful when the length of the input varies or might
+    not be known at all! For example, each word in a sentence could be passed as
+    input to the corresponding cell of an RNN, one at a time, no matter the
+    length of the sentence. Afterwards, the final \(h_t\) can be given to a
+    feedforward network to process it further and return the desired output,
+    depending on what kind of problem the network was built to solve.
+  </p>
+  <h3>Bidirectional RNNs</h3>
+  <p>
+    There are some RNN systems that are composed of two discrete RNNs, which
+    each process the input in reverse directions. An example relating to NLP
+    would be: no matter whether a pronoun precedes or appears after its
+    corresponding noun in a sentence, one of the two RNNs will be able to
+    process the sentence. To do this, a sequence of inputs is fed in its
+    original order to the first RNN, while the second RNN receives the sequence
+    in reverse. Afterwards, both of the final cell states are given to a
+    feedforward network to process further. The intent is that if the sequence
+    contained information that was pertinent at a previous timestep for the
+    first network (a dependency), the second network (which is fed the reverse
+    sequence) would have received the dependency in question
+    <em>before</em> reaching the cell that needed it. This is shown in the
+    diagram below, where the first chain of cells is fed the input forwards and
+    the second is fed the input backwards. Note that the dependency (‘Alice’)
+    reaches the first chain after the dependent (‘her’), rendered useless
+    because the dependent timestep has passed. On the other hand, the dependency
+    reaches the second chain before the dependent timestep is reached and can be
+    used by the corresponding cell.
+  </p>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -16 288 160">
+    <line class="arrow" x2="64" />
+    <line class="arrow" x1="64" y1="128" y2="128" />
+    <use href="#ellipsis" />
+    <use href="#ellipsis" y="128" />
+    <g transform="translate(64)">
+      <line class="arrow" x2="64" />
+      <line class="arrow" x1="64" x2="128" />
+      <line class="arrow" x1="128" x2="192" />
+      <line class="arrow" x1="64" y1="128" y2="128" />
+      <line class="arrow" x1="128" y1="128" x2="64" y2="128" />
+      <line class="arrow" x1="192" y1="128" x2="128" y2="128" />
+      <line class="arrow" y1="64" />
+      <line class="arrow" y1="64" y2="128" />
+      <line class="arrow" x1="128" y1="64" x2="128" y2="128" />
+      <line class="arrow" x1="128" y1="64" x2="128" />
+      <use href="#cell" />
+      <use href="#ellipsis" x="64" />
+      <use href="#ellipsis" x="192" />
+      <use href="#cell" x="128" />
+      <use href="#cell" y="128" />
+      <use href="#ellipsis" x="64" y="128" />
+      <use href="#ellipsis" x="192" y="128" />
+      <use href="#cell" x="128" y="128" />
+      <use href="#dependent" />
+      <use href="#dependent" y="128" />
+      <use href="#empty" y="64" />
+      <use href="#empty" x="128" y="64" />
+    </g>
+    <g transform="translate(0, 64)" font-size="8px">
+      <text x="-16" dominant-baseline="middle">After brushing</text>
+      <text
+        x="64"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        font-style="italic"
+      >
+        her
+      </text>
+      <text x="128" text-anchor="middle" dominant-baseline="middle">
+        teeth,
+      </text>
+      <text
+        x="192"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        font-style="italic"
+      >
+        Alice
+      </text>
+      <text x="272" text-anchor="end" dominant-baseline="middle">
+        went to sleep.
+      </text>
+    </g>
+  </svg>
+  <h3>The Vanishing Gradient</h3>
+  <i>sounds mysterious...</i>
+  <p>
+    Vanilla RNNs suffer from the vanishing gradient problem, which is an issue
+    that can appear when training many-layer neural networks and especially when
+    using limited-precision numbers to do so. The partial derivative of each
+    weight w.r.t. the cost function of a neural network can become ‘vanishingly’
+    small the further the chain rule is applied, due to certain non-linear
+    activation functions like sigmoid and tanh (hyperbolic tangent), whose
+    derivatives are always between zero and one (specifically less than 0.25 and
+    1, respectively).
+  </p>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 -64 516 128">
+    <text y="-10" font-size="12px">y = 0.25</text>
+    <line y1="-8" x2="248" y2="-8" stroke-dasharray="4" style="opacity: 0.2" />
+    <line x2="248" />
+    <line x1="128" y1="-50%" x2="128" y2="50%" />
+    <text x="264" y="-34" font-size="12px">y = 1</text>
+    <line
+      x1="264"
+      y1="-32"
+      x2="100%"
+      y2="-32"
+      stroke-dasharray="4"
+      style="opacity: 0.2"
+    />
+    <line x1="264" x2="100%" />
+    <line x1="392" y1="-50%" x2="392" y2="50%" />
+    <text y="50%" font-size="12px" dominant-baseline="ideographic">
+      (sigmoid)
+    </text>
+    <text
+      x="50%"
+      y="50%"
+      font-size="12px"
+      text-anchor="middle"
+      dominant-baseline="ideographic"
+      fill="crimson"
+    >
+      (derivatives are in red)
+    </text>
+    <text
+      x="512"
+      y="50%"
+      font-size="12px"
+      text-anchor="end"
+      dominant-baseline="ideographic"
+    >
+      (tanh)
+    </text>
+    <g *ngFor="let x of xValues">
+      <circle
+        [attr.cx]="8 * x"
+        [attr.cy]="-32 * sigmoid(x / 2 - xValues.length / 4)"
+        r="2"
+      />
+      <circle
+        [attr.cx]="8 * x"
+        [attr.cy]="-32 * sigmoid_prime(x / 2 - xValues.length / 4)"
+        r="2"
+        fill="crimson"
+      />
+      <circle
+        [attr.cx]="8 + 8 * (x + xValues.length)"
+        [attr.cy]="-32 * tanh(x / 2 - xValues.length / 4)"
+        r="2"
+      />
+      <circle
+        [attr.cx]="8 + 8 * (x + xValues.length)"
+        [attr.cy]="-32 * tanh_prime(x / 2 - xValues.length / 4)"
+        r="2"
+        fill="crimson"
+      />
+    </g>
+  </svg>
+  <p>
+    There’s also a similar issue of ‘exploding’ gradients, which can happen when
+    the activation functions used can have large derivatives (such as the
+    logarithm). This causes the change to the weights to overshoot and miss the
+    targeted minimum of the loss function.
+  </p>
+  <p>
+    However, this is not a dead end! Some RNN variations address this issue.
+    Enter... LSTMs!
+  </p>
+  <h3>Long Short-Term Memory Networks</h3>
+  <p>
+    <a
+      href="https://www.researchgate.net/publication/13853244_Long_Short-term_Memory"
+      >Invented by Josef ‘Sepp’ Hochreiter and Jürgen Schmidhuber in 1997</a
+    >, LSTM (long short-term memory) networks are a more complex type of RNN
+    which are designed to retain important information from iteration to
+    iteration, all the while processing short-term aspects of the data. Each
+    cell of an LSTM network has a line feeding through it through which
+    information that is seldom modified is transported: the cell state, denoted
+    by \(c_t\). LSTMs also contain ‘gates’: mechanisms which only allow certain
+    information to pass through them. For example, the forget gate and input
+    gate control changes to the cell state to ensure only long-term dependencies
+    are stored in it. Additionally, there exists an output gate in each cell
+    that decides which information in the cell state might be important to the
+    next cell. Similar to conventional RNNs, LSTM networks directly pass this
+    short-term information selected from the cell state from one cell to the
+    next. This permits the network to focus on certain information that is
+    pertinent at the moment, without losing information that is stored in the
+    cell state.
+  </p>
+  <p>
+    Note: you might have noticed that in the following diagrams, some arrows
+    merge together. This was done so that the diagrams could be more compact;
+    <em>not</em> to symbolise a concatenation of two vectors. Considering two
+    arrows that join together as two distinct values flowing to the same
+    destination also matches the format the variables are written in the
+    equations that will follow.
+  </p>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -16 416 288">
+    <defs>
+      <g id="lstm-forget-input-can-output">
+        <line y1="192" x2="64" y2="192" />
+        <line x1="64" y1="256" x2="64" y2="192" />
+        <foreignObject x="-20.5" y="180.5" width="41" height="23">
+          <span style="background-color: linen">\(h_{{ "{t-1}" }}\)</span>
+        </foreignObject>
+        <foreignObject x="46.5" y="241.5" width="35" height="29">
+          <span style="background-color: linen">\(x_t\)</span>
+        </foreignObject>
+      </g>
+      <g id="lstm-input-can-output">
+        <line x1="64" y1="192" x2="128" y2="192" />
+      </g>
+      <g id="lstm-input-state">
+        <polyline class="arrow" points="128,128 128,64 192,64" />
+        <use href="#layer-sigmoid" x="128" y="128" />
+      </g>
+      <g id="lstm-can-state">
+        <line class="arrow" x1="192" y1="128" x2="192" y2="64" />
+        <use href="#layer-tanh" x="192" y="128" />
+      </g>
+      <g id="lstm-input">
+        <line class="arrow" x1="128" y1="192" x2="128" y2="128" />
+      </g>
+      <g id="lstm-can">
+        <line class="arrow" x1="192" y1="192" x2="192" y2="128" />
+      </g>
+      <g id="lstm-rel">
+        <line class="arrow" x1="320" x2="320" y2="64" />
+        <line class="arrow" x1="320" y1="64" x2="320" y2="192" />
+        <use href="#el-tanh" x="320" y="64" />
+        <line class="arrow" x1="320" y1="192" x2="384" y2="192" />
+        <use href="#el-prod" x="320" y="192" />
+        <foreignObject x="372.5" y="180" width="23" height="24">
+          <span style="background-color: linen">\(h_t\)</span>
+        </foreignObject>
+      </g>
+      <g id="lstm-state-rel">
+        <line x1="192" x2="320" />
+        <use href="#el-sum" x="192" />
+      </g>
+      <g id="lstm-state">
+        <line class="arrow" x2="64" />
+        <foreignObject x="-20.5" y="-11.5" width="41" height="23">
+          <span style="background-color: linen">\(c_{{ "{t-1}" }}\)</span>
+        </foreignObject>
+        <line class="arrow" x1="64" x2="192" />
+        <use href="#el-prod" x="64" />
+        <line class="arrow" x1="192" y1="64" x2="192" />
+        <use href="#el-prod" x="192" y="64" />
+        <line class="arrow" x1="320" x2="384" />
+        <foreignObject x="372.5" y="-10" width="23" height="20">
+          <span style="background-color: linen">\(c_t\)</span>
+        </foreignObject>
+      </g>
+      <g id="lstm-can-output">
+        <line x1="128" y1="192" x2="192" y2="192" />
+      </g>
+      <g id="lstm-output-rel">
+        <line class="arrow" x1="256" y1="192" x2="320" y2="192" />
+        <use href="#layer-sigmoid" x="256" y="192" />
+      </g>
+      <g id="lstm-forget-state">
+        <line class="arrow" x1="64" y1="128" x2="64" />
+        <use href="#layer-sigmoid" x="64" y="128" />
+      </g>
+      <g id="lstm-forget">
+        <line class="arrow" x1="64" y1="192" x2="64" y2="128" />
+      </g>
+      <g id="lstm-output">
+        <line x1="192" y1="192" x2="256" y2="192" />
+      </g>
+    </defs>
+    <use href="#lstm-forget-input-can-output" />
+    <use href="#lstm-input" />
+    <use href="#lstm-input-state" />
+    <use href="#lstm-can" />
+    <use href="#lstm-can-state" />
+    <use href="#lstm-input-can-output" />
+    <use href="#lstm-can-output" />
+    <use href="#lstm-output" />
+    <use href="#lstm-output-rel" />
+    <use href="#lstm-rel" />
+    <use href="#lstm-forget" />
+    <use href="#lstm-forget-state" />
+    <use href="#lstm-state" />
+    <use href="#lstm-state-rel" />
+    <g font-size="12px">
+      <text
+        x="48"
+        y="112"
+        transform="rotate(-90, 48, 112)"
+        dominant-baseline="hanging"
+      >
+        &nbsp;forget gate
+      </text>
+      <text
+        x="112"
+        y="112"
+        transform="rotate(-90, 112, 112)"
+        dominant-baseline="hanging"
+      >
+        &nbsp;input gate
+      </text>
+      <text
+        x="240"
+        y="176"
+        transform="rotate(-90, 240, 176)"
+        dominant-baseline="hanging"
+      >
+        &nbsp;output gate
+      </text>
+    </g>
+  </svg>
+  <p>
+    To denote element-wise operations in the LSTM diagrams, a circular node is
+    used with the operation’s symbol inside, such as element-wise multiplication
+    (\(\odot\)) or addition (\(+\)). Let’s now examine the gates and other
+    components that make up the LSTM.
+  </p>
+  <h4>Forget Gate</h4>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -16 416 288">
+    <use href="#lstm-forget-input-can-output" />
+    <use href="#lstm-forget" />
+    <use href="#lstm-forget-state" />
+    <g style="opacity: 0.2">
+      <use href="#lstm-input" />
+      <use href="#lstm-input-state" />
+      <use href="#lstm-can" />
+      <use href="#lstm-can-state" />
+      <use href="#lstm-input-can-output" />
+      <use href="#lstm-can-output" />
+      <use href="#lstm-output" />
+      <use href="#lstm-output-rel" />
+      <use href="#lstm-rel" />
+      <use href="#lstm-state" />
+      <use href="#lstm-state-rel" />
+    </g>
+  </svg>
+  <p>
+    Notably, the forget gate in an LSTM decides what information should be kept
+    in the cell state. It does so by examining the current input (\(x_t\)) and
+    the output vector of the previous cell (\(h_{{ "{t-1}" }}\)) to decide how
+    important the values in the cell state (which is a vector) are. In practice,
+    this is done with the first sigmoid layer in the LSTM, which outputs a
+    vector with values ranging between zero (not of importance) and one (of
+    utmost importance) This is referred to as the forget gate’s activation
+    vector. Written with the mathematical notation, the forget gate looks like:
+  </p>
+  \(f_t=\sigma(W_fx_t+U_fh_{{ "{t-1}" }}+b_f)\)
+  <p>
+    where \(f_t\) represents the activation vector, and \(W_f\), \(U_f\) and
+    \(b_f\) represent the weights corresponding to \(x_t\), the weights
+    corresponding to \(h_{{ "{t-1}" }}\) (named the ‘recurrent weights’) and the
+    biases, respectively.
+  </p>
+  <p>
+    The forget gate’s (and other gates’) activation vector contains values
+    between zero and one to allow the old cell state to be multiplied
+    element-wise by the activation vector and lessen unimportant values. For
+    example:
+  </p>
+  \(\begin{{ "{bmatrix}" }} 0 \\ 1 \\ 0.5 \end{{ "{bmatrix}" }} \odot \begin{{
+    "{bmatrix}"
+  }}
+  3 \\ -7 \\ 5 \end{{ "{bmatrix}" }} = \begin{{ "{bmatrix}" }} 0 \\ -7 \\ 0.25
+  \end{{ "{bmatrix}" }}\)
+  <p>
+    The ‘3’ in the second vector is not of any importance according to the
+    arbitrary activation vector on the left because the element it is multiplied
+    by is ‘0’. On the other hand, ‘-7’ is of <em>utmost importance</em> because
+    the second element of the activation vector is ‘1’, allowing it to pass
+    unchanged. ‘5’ is in between; it is of some importance because the
+    corresponding activation vector element is ‘0.5’, halving it. An activation
+    vector is also called a mask because it ‘masks’ (allows only a fraction of a
+    value to pass), in this case, the former cell state.
+  </p>
+  <h4>Input Gate</h4>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -16 416 288">
+    <use href="#lstm-forget-input-can-output" />
+    <use href="#lstm-input" />
+    <use href="#lstm-input-state" />
+    <use href="#lstm-input-can-output" />
+    <g style="opacity: 0.2">
+      <use href="#lstm-can" />
+      <use href="#lstm-can-state" />
+      <use href="#lstm-can-output" />
+      <use href="#lstm-output" />
+      <use href="#lstm-output-rel" />
+      <use href="#lstm-rel" />
+      <use href="#lstm-forget" />
+      <use href="#lstm-forget-state" />
+      <use href="#lstm-state" />
+      <use href="#lstm-state-rel" />
+    </g>
+  </svg>
+  <p>
+    Similar to the forget gate, the input gate is also equipped with a sigmoid
+    layer which takes \(x_t\) and \(h_{{ "{t-1}" }}\) as inputs. However, this
+    gate decides which values of the cell state should be updated based on the
+    current input and the old cell state. Mathematically, this gate is written
+    as:
+  </p>
+  \(i_t=\sigma(W_ix_t+U_ih_{{ "{t-1}" }}+b_i)\)
+  <p>
+    where \(i_t\) represents the activation vector, and \(W_i\), \(U_i\) and
+    \(b_i\) represent the weights corresponding to \(x_t\), recurrent weights
+    and the biases, respectively.
+  </p>
+  <h4>Candidate Changes</h4>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -16 416 288">
+    <use href="#lstm-forget-input-can-output" />
+    <use href="#lstm-can" />
+    <use href="#lstm-can-state" />
+    <use href="#lstm-input-can-output" />
+    <use href="#lstm-can-output" />
+    <g style="opacity: 0.2">
+      <use href="#lstm-input" />
+      <use href="#lstm-input-state" />
+      <use href="#lstm-output" />
+      <use href="#lstm-output-rel" />
+      <use href="#lstm-rel" />
+      <use href="#lstm-forget" />
+      <use href="#lstm-forget-state" />
+      <use href="#lstm-state" />
+      <use href="#lstm-state-rel" />
+    </g>
+  </svg>
+  <p>
+    In addition to the sigmoid layer of the input gate, there exists a tanh
+    layer that generates a vector of candidate changes to the cell state.
+    Mathematically, this is written as:
+  </p>
+  \(\tilde c=tanh(W_cx_t+U_ch_{{ "{t-1}" }}+b_c)\)
+  <p>
+    where \(\tilde c\) represents the update candidates, and \(W_c\), \(U_c\)
+    and \(b_c\) represent the weights corresponding to \(x_t\), the recurrent
+    weights and the biases, respectively. The tanh activation function is used
+    instead of sigmoid because changes to the cell state can be positive
+    <em>or</em> negative; tanh’s output ranges from -1 to 1 whereas sigmoid’s is
+    from 0 to 1, which is not appropriate.
+  </p>
+  <p>
+    This is where the input gate comes into play: it chooses how potent each
+    change will be on the cell state, if at all. Of course, this is done by
+    taking the element-wise product of the activation vector and the vector of
+    update candidates. Afterwards, this is added to the old cell state.
+  </p>
+  <h4>Updating the Cell State</h4>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -16 416 288">
+    <g style="opacity: 0.2">
+      <use href="#lstm-forget-input-can-output" />
+      <use href="#lstm-input" />
+      <use href="#lstm-can" />
+      <use href="#lstm-input-can-output" />
+      <use href="#lstm-can-output" />
+      <use href="#lstm-output" />
+      <use href="#lstm-output-rel" />
+      <use href="#lstm-rel" />
+      <use href="#lstm-forget" />
+    </g>
+    <use href="#lstm-input-state" />
+    <use href="#lstm-can-state" />
+    <use href="#lstm-forget-state" />
+    <use href="#lstm-state" />
+    <use href="#lstm-state-rel" />
+  </svg>
+  <p>
+    Finally, the cell state can be updated. Once again: the old cell state is
+    multiplied element-wise by the forget gate activation vector. Then, it is
+    incremented by the element-wise product of the input gate activation vector
+    and the candidate changes. Mathematically, this is written as:
+  </p>
+  \(c_t=f_t\odot c_{{ "{t-1}" }}+i_t\odot \tilde c\)
+  <p>
+    We’re almost finished. Next, the new (short-term) output of the cell must be
+    calculated.
+  </p>
+  <h4>Output Gate</h4>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -16 416 288">
+    <use href="#lstm-output" />
+    <use href="#lstm-output-rel" />
+    <g style="opacity: 0.2">
+      <use href="#lstm-input" />
+      <use href="#lstm-input-state" />
+      <use href="#lstm-can" />
+      <use href="#lstm-can-state" />
+      <use href="#lstm-rel" />
+      <use href="#lstm-forget" />
+      <use href="#lstm-forget-state" />
+      <use href="#lstm-state" />
+      <use href="#lstm-state-rel" />
+    </g>
+    <use href="#lstm-forget-input-can-output" />
+    <use href="#lstm-input-can-output" />
+    <use href="#lstm-can-output" />
+  </svg>
+  <p>
+    Our cell state is now updated, but we still need to select which information
+    we would like to output from our cell. This is the purpose of the output
+    gate. First, we use a sigmoid layer (as always) to decide which fields of
+    the cell state are pertinent to the next cell based on \(x_t\) and \(h_{{
+      "{t-1}"
+    }}\):
+  </p>
+  \(o_t=\sigma(W_ox_t+U_oh_{{ "{t-1}" }}+b_o)\)
+  <p>
+    where \(o_t\) represents the new output mask, and \(W_o\), \(U_o\) and
+    \(b_o\) represent the weights corresponding to \(x_t\), the recurrent
+    weights and the biases, respectively.
+  </p>
+  <h4>Cell Output</h4>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -16 416 288">
+    <g style="opacity: 0.2">
+      <use href="#lstm-forget-input-can-output" />
+      <use href="#lstm-input" />
+      <use href="#lstm-input-state" />
+      <use href="#lstm-can" />
+      <use href="#lstm-can-state" />
+      <use href="#lstm-input-can-output" />
+      <use href="#lstm-can-output" />
+      <use href="#lstm-output" />
+      <use href="#lstm-forget" />
+      <use href="#lstm-forget-state" />
+      <use href="#lstm-state" />
+    </g>
+    <use href="#lstm-output-rel" />
+    <use href="#lstm-rel" />
+    <use href="#lstm-state-rel" />
+  </svg>
+  <p>
+    Before we use the output layer’s activation vector to select the pertinent
+    information from the new cell state, we pass the cell state through the tanh
+    activation function to map them between -1 and 1:
+  </p>
+  \(h_t=o_t\odot tanh(c_t)\)
+  <p>
+    \(c_t\) is additionally fed through the tanh function instead of simply
+    multiplying \(o_t\) and \(c_t\) element-wise so that the next cell’s gates
+    are not ‘overpowered’ by \(c_t\) in the product \(h_t\), pulling the outputs
+    of the next cell’s activation functions towards their maximum or minimum
+    (hence almost fully opening or closing the gates).
+  </p>
+  <h4>Round and Round...</h4>
+  <p>
+    The above process simply repeats for every new input to the LSTM network
+    (e.g. every word in the book review). At the beginning, when \(t=0\), \(c_{{
+      "{t-1}"
+    }}\) and \(h_{{ "{t-1}" }}\) are considered to be vectors filled with zeroes
+    to give the LSTM a clean slate to write on. In addition to being capable of
+    easily retaining long-term information in the cell state, LSTM networks can
+    solve the vanishing and exploding gradient problems because their gates
+    learn to prevent the cell state gradient from converging to zero.
+  </p>
+  <p>
+    By now, I think it’s pretty obvious that LSTMs are pretty complex, slowing
+    down training and prediction. This is why we’ll now look at a simpler (and
+    faster) variant of LSTM networks and see how it functions.
+  </p>
+  <h3>Gated Recurrent Unit</h3>
+  <p>
+    The GRU (gated recurrent unit) was
+    <a href="https://arxiv.org/abs/1406.1078"
+      >introduced in 2014 by Kyunghyun Cho et al.</a
+    >
+    and is simpler than the original LSTM: the whole of the cell state is
+    encapsulated in the output of the cell and the forget gate and input gate
+    are combined into an update gate. The output gate is removed and a new reset
+    gate is added that decides how much the update to the old cell state will
+    depend on the values of the old cell state, similar to the output gate of an
+    LSTM, which decides how useful the cell state will be for the next cell’s
+    gates. Although simpler, GRUs have been shown to have a similar accuracy as
+    LSTM networks (and even a better one for smaller training datasets), with
+    the benefit of less operations required to function. We’ll now quickly go
+    over how a GRU works.
+  </p>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -16 480 288">
+    <defs>
+      <g id="gru-reset-can-update">
+        <line x1="64" y1="256" x2="64" y2="192" />
+        <foreignObject x="46.5" y="241.5" width="35" height="29">
+          <span style="background-color: linen; padding: 2px 0">\(x_t\)</span>
+        </foreignObject>
+      </g>
+      <g id="gru-reset-can-update-out">
+        <line x2="64" />
+        <foreignObject x="-19" y="-11.5" width="41" height="23">
+          <span style="background-color: linen">\(h_{{ "{t-1}" }}\)</span>
+        </foreignObject>
+      </g>
+      <g id="gru-reset-update">
+        <line class="diode" x1="64" x2="64" y2="128" />
+        <line class="diode" x1="64" y1="192" x2="64" y2="128" />
+        <line x1="64" y1="128" x2="192" y2="128" />
+      </g>
+      <g id="gru-reset-can">
+        <line class="arrow" x1="192" y1="64" x2="128" y2="64" />
+        <use href="#layer-sigmoid" x="192" y="64" />
+      </g>
+      <g id="gru-reset">
+        <line class="arrow" x1="192" y1="128" x2="192" y2="64" />
+      </g>
+      <g id="gru-can-out">
+        <line class="arrow" x1="384" y1="192" x2="384" y2="128" />
+        <line x1="64" x2="128" />
+        <use href="#layer-tanh" x="384" y="192" />
+      </g>
+      <g id="gru-can">
+        <line class="arrow" x1="128" x2="128" y2="64" />
+        <polyline class="arrow" points="128,64 128,192 384,192" />
+        <line class="diode" x1="64" y1="192" x2="128" y2="192" />
+        <use href="#intersection" x="128" y="128" />
+        <use href="#el-prod" x="128" y="64" />
+      </g>
+      <g id="gru-update-out">
+        <line class="arrow" x1="320" y1="128" x2="320" y2="64" />
+        <line class="arrow" x1="256" y1="128" x2="384" y2="128" />
+        <use href="#layer-sigmoid" x="256" y="128" />
+      </g>
+      <g id="gru-update">
+        <line class="arrow" x1="192" y1="128" x2="256" y2="128" />
+      </g>
+      <g id="gru-out">
+        <line class="arrow" x1="320" y1="64" x2="320" />
+        <line class="arrow" x1="384" y1="192" x2="384" />
+        <line class="arrow" x1="128" x2="320" />
+        <line class="arrow" x1="320" y1="64" x2="320" />
+        <line class="arrow" x1="320" x2="384" />
+        <line class="arrow" x1="384" x2="448" />
+        <use href="#el-sum" x="384" />
+        <use href="#el-one-minus" x="320" y="64" />
+        <use href="#el-prod" x="320" />
+        <use href="#el-prod" x="384" y="128" />
+        <foreignObject x="436.5" y="-12" width="23" height="24">
+          <span style="background-color: linen">\(h_t\)</span>
+        </foreignObject>
+      </g>
+    </defs>
+    <use href="#gru-update" />
+    <use href="#gru-reset" />
+    <use href="#gru-reset-can" />
+    <use href="#gru-can" />
+    <use href="#gru-update-out" />
+    <use href="#gru-reset-can-update" />
+    <use href="#gru-reset-update" />
+    <use href="#gru-reset-can-update-out" />
+    <use href="#gru-can-out" />
+    <use href="#gru-out" />
+    <g font-size="12px">
+      <text x="208" y="80">&nbsp;reset gate</text>
+      <text x="272" y="144">&nbsp;update gate</text>
+    </g>
+  </svg>
+  <h4>Reset Gate</h4>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -16 480 288">
+    <use href="#gru-reset" />
+    <use href="#gru-reset-can-update" />
+    <use href="#gru-reset-update" />
+    <use href="#gru-reset-can" />
+    <use href="#gru-reset-can-update-out" />
+    <g style="opacity: 0.2">
+      <use href="#gru-can" />
+      <use href="#gru-update" />
+      <use href="#gru-update-out" />
+      <use href="#gru-can-out" />
+      <use href="#gru-out" />
+    </g>
+  </svg>
+  <p>
+    The reset gate, one of the two gates of a GRU, decides how important each
+    element of the previous cell state is in computing the candidate changes to
+    cell state based on the previous cell state and the current timestep’s
+    input:
+  </p>
+  \(r_t=\sigma(W_rx_t+U_rh_{{ "{t-1}" }}+b_r)\)
+  <p>
+    \(r_t\) represents the activation vector of the reset gate, which will later
+    be multiplied element-wise with \(h_{{ "{t-1}" }}\) to filter out relevant
+    information.
+  </p>
+  <p>
+    The reset gate’s name comes from what happens when its activation vector’s
+    values are very small or equal to zero: the previous cell state is neglected
+    and the current input exclusively determines the candidate changes.
+  </p>
+  <h4>Candidate Changes</h4>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -16 480 288">
+    <defs>
+      <mask id="gru-mask-reset-can">
+        <rect width="100%" height="100%" fill="white" />
+        <use href="#dot" x="128" y="64" />
+      </mask>
+    </defs>
+    <use href="#gru-can" />
+    <use href="#gru-can-out" />
+    <g style="opacity: 0.2">
+      <use href="#gru-update" />
+      <use href="#gru-reset" />
+      <use href="#gru-update" />
+      <use href="#gru-reset-update" />
+      <use href="#gru-reset-can-update" />
+      <use href="#gru-update-out" />
+      <use href="#gru-out" />
+    </g>
+    <use href="#gru-reset-can" mask="url(#gru-mask-reset-can)" />
+    <use href="#gru-reset-can-update" />
+    <use href="#gru-reset-can-update-out" />
+  </svg>
+  <p>
+    To decide on candidate changes to the cell state, a tanh layer is fed the
+    vector with old cell state information, filtered by the reset gate, in
+    addition to the current timestep’s input:
+  </p>
+  \(\tilde h_t=tanh(W_hx_t+U_h(r_t\odot h_{{ "{t-1}" }})+b_h)\)
+  <p>
+    Similar to LSTMs, \(\tilde h_t\) is a vector of candidate changes to the
+    cell state that will be further filtered by the update gate and applied to
+    the cell state after it forgets irrelevant details.
+  </p>
+  <h4>Update Gate</h4>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -16 480 288">
+    <use href="#gru-update" />
+    <use href="#gru-update-out" />
+    <g style="opacity: 0.2">
+      <use href="#gru-reset" />
+      <use href="#gru-reset-can" />
+      <use href="#gru-can" />
+      <use href="#gru-can-out" />
+      <use href="#gru-out" />
+    </g>
+    <use href="#gru-reset-can-update" />
+    <use href="#gru-reset-update" />
+    <use href="#gru-reset-can-update-out" />
+  </svg>
+  <p>
+    The update gate of a GRU replaces the functionality of the forget and input
+    gates of an LSTM network. It constitutes of a sigmoid-activated layer that
+    is trained to decide how much to update each field of the cell state. The
+    update gate activation vector can be represented as follows:
+  </p>
+  \(z_t=\sigma(W_zx_t+U_zh_{{ "{t-1}" }}+b_z)\)
+  <p>
+    Each element of \(z_t\) signifies how much the corresponding element of the
+    cell state will be forgotten, from zero to one. Since the update gate also
+    functions as an input gate, it represents how potent each candidate change
+    against the cell state will be.
+  </p>
+  <h4>Cell State</h4>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -16 480 288">
+    <defs>
+      <g id="gru-not-out">
+        <use href="#gru-reset-can-update" />
+        <use href="#gru-reset" />
+        <use href="#gru-reset-can" />
+        <use href="#gru-can" />
+        <use href="#gru-reset-update" />
+        <use href="#gru-update" />
+      </g>
+      <mask id="gru-mask-not-out">
+        <rect x="-16" y="-16" width="416" height="416" fill="white" />
+        <use href="#gru-not-out" style="filter: brightness(0)" />
+      </mask>
+    </defs>
+
+    <use href="#gru-not-out" style="opacity: 0.2" />
+    <use href="#gru-update-out" />
+    <use href="#gru-can-out" />
+    <use href="#gru-out" />
+    <use href="#gru-reset-can-update-out" />
+  </svg>
+  <p>Finally, the new cell state can be constructed and sent out:</p>
+  \(h_t=(1-z_t)\odot h_{{ "{t-1}" }}+z_t\odot\tilde h_t\)
+  <p>
+    In the expression above, \(z_t\) is being subtracted from ‘1’ because the
+    update gate of a GRU forgets the information it will replace. In this case,
+    \(z_t\) represents how much the candidate changes will affect the cell state
+    and thus the old cell state is multiplied element-wise by \(1-z_t\) because
+    the larger an element of \(z_t\) is, the smaller \(1-z_t\) will be, leading
+    to less of the element in question of the cell state being preserved, and
+    vice versa.
+  </p>
+  ⁂
+  <p>
+    By now, Alice is convinced that RNNs, particularly LSTM networks or GRUs are
+    the tools she needs for her job; they can be fed variable-size inputs and
+    the latter two can retain information over many timesteps. However, she
+    still needs to figure out a way to encode the words in her reviews as
+    numbers, preferrably grouping together the representations of words that
+    have similar meanings.
+  </p>
+  <h2>Text Vectorisation</h2>
+  <p>
+    Usually, text is encoded by creating a list of known words (referred to as
+    the vocabulary) and assigning an index to each, then substituting the words
+    in a sample with the corresponding indices. This forms a vector of indices,
+    hence the process of encoding is referred to as ‘text vectorisation’. In
+    many cases, words are sorted before assigning indices, with more frequent
+    words assigned lesser indices, in hopes of allowing the network to more
+    easily neglect words with larger indices, which might not be as important to
+    understanding a text. Sometimes, very rare words are even discarded from the
+    vocabulary because the model might not have enough context to accurately
+    learn their meanings.
+  </p>
+  <p>
+    However, there is one small problem: sentences that include words which are
+    not part of the existing vocabulary cannot be encoded. To solve this, there
+    is an additional index (usually the smallest) that is reserved for replacing
+    unknown words. This way, the structure of the sample is preserved, whereas
+    simply omitting unknown words could encourage the neural network to
+    misunderstand the sentence.
+  </p>
+  <h2>Embedding</h2>
+  <p>
+    To improve performance, encoded text undergoes ‘embedding’, which replaces
+    each index with a vector that best represents the corresponding word’s
+    meaning. This alleviates the RNN of having to link similar words together
+    and significantly improves model performance. For example, ‘child’ and ‘kid’
+    might be assigned similar vectors to simplify the network’s task. In
+    practice, embedding is usually done by storing a list of vectors whose
+    indices match the ones of the encoded words they map to. During training,
+    each vector is then tweaked to better match the meaning of its corresponding
+    word.
+  </p>
+  <h2>Putting It All Together</h2>
+  <p>
+    Now, we’ll go over the code that will train a model to suggest ratings to
+    customers. We’ll do this with TensorFlow, using the Keras interface because
+    of its rich functionality and the small amount of code we would need to
+    write to use it. TensorFlow currently provides language bindings from C++ to
+    Python, Java, C and Go, in addition to a JavaScript API. There also exist
+    community-provided bindings to other languages if one chooses to use them.
+    However, we’ll write our program in Python because TensorFlow’s
+    documentation references the Python library.
+  </p>
+  <p>
+    Keras is an abstraction of TensorFlow, which simplifies designing models of
+    various architectures. Every model built with Keras consists of layers,
+    which are different functions the inputs to the model can pass through,
+    ranging from dense (feed-forward) layers to recurrent ones. Keras provides
+    two APIs: ‘sequential’ and ‘functional’. The sequential API enables one to
+    easily create a model where the output of each layer is the input to the
+    next. For more complex use-cases, the functional API can be utilised to
+    reuse layer outputs to be given to multiple following layers. We are going
+    use the sequential API to write our code because we simply need to stack
+    layers one on top of the next.
+  </p>
+  <p>
+    If you prefer to go over the already-written code, a Jupyter notebook filled
+    with it is available
+    <a href="assets/posts/classifying-text-with-neural-networks/notebook.ipynb"
+      >here</a
+    >. You can also
+    <a
+      href="https://colab.research.google.com/github/rcerc/rcerc.github.io/blob/gh-pages/assets/posts/classifying-text-with-neural-networks/notebook.ipynb"
+      >import the notebook into Google Colaboratory</a
+    >
+    to run it remotely. If you decide to go with the latter, I suggest you
+    switch to a GPU-accelerated runtime to speed up training by navigating to
+    ‘Runtime’ > ‘Change runtime type’ (in the menubar) and selecting GPU in the
+    drop-down. Note that you might run into usage limits if you use this runtime
+    for too long, so consider switching back to the CPU backend (‘None’ dropdown
+    option) when finished.
+  </p>
+  <h3>Configuring Your Environment</h3>
+  <p>To begin, install or upgrade the Python TensorFlow library using pip:</p>
+  <app-cell>$ pip install --upgrade tensorflow</app-cell>
+  Output:
+  <pre class="hljs">
+Requirement already satisfied: tensorflow in ./.venv/lib/python3.9/site-packages (2.6.0)
+Requirement already satisfied: termcolor~=1.1.0 in ./.venv/lib/python3.9/site-packages (from tensorflow) (1.1.0)
+Requirement already satisfied: keras-preprocessing~=1.1.2 in ./.venv/lib/python3.9/site-packages (from tensorflow) (1.1.2)
+Requirement already satisfied: six~=1.15.0 in ./.venv/lib/python3.9/site-packages (from tensorflow) (1.15.0)
+Requirement already satisfied: tensorflow-estimator~=2.6 in ./.venv/lib/python3.9/site-packages (from tensorflow) (2.6.0)
+Requirement already satisfied: tensorboard~=2.6 in ./.venv/lib/python3.9/site-packages (from tensorflow) (2.6.0)
+Requirement already satisfied: clang~=5.0 in ./.venv/lib/python3.9/site-packages (from tensorflow) (5.0)
+Requirement already satisfied: keras~=2.6 in ./.venv/lib/python3.9/site-packages (from tensorflow) (2.6.0)
+Requirement already satisfied: grpcio<2.0,>=1.37.0 in ./.venv/lib/python3.9/site-packages (from tensorflow) (1.39.0)
+Requirement already satisfied: wrapt~=1.12.1 in ./.venv/lib/python3.9/site-packages (from tensorflow) (1.12.1)
+Requirement already satisfied: wheel~=0.35 in ./.venv/lib/python3.9/site-packages (from tensorflow) (0.37.0)
+Requirement already satisfied: protobuf>=3.9.2 in ./.venv/lib/python3.9/site-packages (from tensorflow) (3.17.3)
+Requirement already satisfied: astunparse~=1.6.3 in ./.venv/lib/python3.9/site-packages (from tensorflow) (1.6.3)
+Requirement already satisfied: opt-einsum~=3.3.0 in ./.venv/lib/python3.9/site-packages (from tensorflow) (3.3.0)
+Requirement already satisfied: absl-py~=0.10 in ./.venv/lib/python3.9/site-packages (from tensorflow) (0.13.0)
+Requirement already satisfied: numpy~=1.19.2 in ./.venv/lib/python3.9/site-packages (from tensorflow) (1.19.5)
+Requirement already satisfied: typing-extensions~=3.7.4 in ./.venv/lib/python3.9/site-packages (from tensorflow) (3.7.4.3)
+Requirement already satisfied: gast==0.4.0 in ./.venv/lib/python3.9/site-packages (from tensorflow) (0.4.0)
+Requirement already satisfied: h5py~=3.1.0 in ./.venv/lib/python3.9/site-packages (from tensorflow) (3.1.0)
+Requirement already satisfied: flatbuffers~=1.12.0 in ./.venv/lib/python3.9/site-packages (from tensorflow) (1.12)
+Requirement already satisfied: google-pasta~=0.2 in ./.venv/lib/python3.9/site-packages (from tensorflow) (0.2.0)
+Requirement already satisfied: tensorboard-plugin-wit>=1.6.0 in ./.venv/lib/python3.9/site-packages (from tensorboard~=2.6->tensorflow) (1.8.0)
+Requirement already satisfied: werkzeug>=0.11.15 in ./.venv/lib/python3.9/site-packages (from tensorboard~=2.6->tensorflow) (2.0.1)
+Requirement already satisfied: setuptools>=41.0.0 in ./.venv/lib/python3.9/site-packages (from tensorboard~=2.6->tensorflow) (57.4.0)
+Requirement already satisfied: tensorboard-data-server<0.7.0,>=0.6.0 in ./.venv/lib/python3.9/site-packages (from tensorboard~=2.6->tensorflow) (0.6.1)
+Requirement already satisfied: google-auth-oauthlib<0.5,>=0.4.1 in ./.venv/lib/python3.9/site-packages (from tensorboard~=2.6->tensorflow) (0.4.5)
+Requirement already satisfied: requests<3,>=2.21.0 in ./.venv/lib/python3.9/site-packages (from tensorboard~=2.6->tensorflow) (2.26.0)
+Requirement already satisfied: markdown>=2.6.8 in ./.venv/lib/python3.9/site-packages (from tensorboard~=2.6->tensorflow) (3.3.4)
+Requirement already satisfied: google-auth<2,>=1.6.3 in ./.venv/lib/python3.9/site-packages (from tensorboard~=2.6->tensorflow) (1.34.0)
+Requirement already satisfied: rsa<5,>=3.1.4 in ./.venv/lib/python3.9/site-packages (from google-auth<2,>=1.6.3->tensorboard~=2.6->tensorflow) (4.7.2)
+Requirement already satisfied: cachetools<5.0,>=2.0.0 in ./.venv/lib/python3.9/site-packages (from google-auth<2,>=1.6.3->tensorboard~=2.6->tensorflow) (4.2.2)
+Requirement already satisfied: pyasn1-modules>=0.2.1 in ./.venv/lib/python3.9/site-packages (from google-auth<2,>=1.6.3->tensorboard~=2.6->tensorflow) (0.2.8)
+Requirement already satisfied: requests-oauthlib>=0.7.0 in ./.venv/lib/python3.9/site-packages (from google-auth-oauthlib<0.5,>=0.4.1->tensorboard~=2.6->tensorflow) (1.3.0)
+Requirement already satisfied: pyasn1<0.5.0,>=0.4.6 in ./.venv/lib/python3.9/site-packages (from pyasn1-modules>=0.2.1->google-auth<2,>=1.6.3->tensorboard~=2.6->tensorflow) (0.4.8)
+Requirement already satisfied: certifi>=2017.4.17 in ./.venv/lib/python3.9/site-packages (from requests<3,>=2.21.0->tensorboard~=2.6->tensorflow) (2021.5.30)
+Requirement already satisfied: idna<4,>=2.5 in ./.venv/lib/python3.9/site-packages (from requests<3,>=2.21.0->tensorboard~=2.6->tensorflow) (3.2)
+Requirement already satisfied: charset-normalizer~=2.0.0 in ./.venv/lib/python3.9/site-packages (from requests<3,>=2.21.0->tensorboard~=2.6->tensorflow) (2.0.4)
+Requirement already satisfied: urllib3<1.27,>=1.21.1 in ./.venv/lib/python3.9/site-packages (from requests<3,>=2.21.0->tensorboard~=2.6->tensorflow) (1.26.6)
+Requirement already satisfied: oauthlib>=3.0.0 in ./.venv/lib/python3.9/site-packages (from requests-oauthlib>=0.7.0->google-auth-oauthlib<0.5,>=0.4.1->tensorboard~=2.6->tensorflow) (3.1.1)
+</pre
+  >
+  <p>
+    Usually, one would do this in a virtual environment to leave the user-wide
+    site-packages clean. If you’re interested in doing that, take a look at
+    <a href="https://docs.python.org/3/library/venv.html">this</a>.
+  </p>
+  <p>
+    Next, we import TensorFlow, in addition to <code>urllib</code> and
+    <code>zlib</code> which we will use to load an Amazon book review dataset
+    (let’s just say Alice doesn’t have enough reviews herself). We also import
+    <code>datetime</code> and <code>os</code> to set up log directories for
+    TensorBoard, a web-based utility for inspecting models and monitoring
+    training:
+  </p>
+  <app-cell [index]="3"></app-cell>
+  <p>
+    Now, we define some constants that we will later use in our program. Note
+    that by ‘constants’, I mean values that <em>we</em> will not be changing;
+    they will always be variables in Python.
+  </p>
+  <app-cell [index]="4"></app-cell>
+  <h3>Loading the Dataset</h3>
+  <p>
+    To load the Amazon review dataset, we’ll use a custom generator
+    (<code>ds_lines</code>) that will decompress the TSV file chunk by chunk,
+    then yield it line by line. This way, only the number of reviews we actually
+    want to use (out of the 10 319 090) will be downloaded. For reference, this
+    dataset was found on
+    <a href="https://www.tensorflow.org/datasets/catalog/overview"
+      >the TensorFlow datasets overview page</a
+    >. We’ll also add in the function (<code>ds_tuples</code>) which takes a
+    scalar string tensor <code>line</code> as input, parses it and returns the
+    review body and numerical rating so that the rest of the review doesn’t get
+    in our way.
+  </p>
+  <app-cell [index]="6"></app-cell>
+  <p>
+    To simplify pouring the dataset into the model, we’ll use the
+    <code>tf.data.Dataset</code> class to create a TensorFlow input pipeline,
+    which we’ll later use to prepare the dataset and feed it into the model. An
+    input pipeline is a process each element of a dataset is passed through to
+    become a value that can be given to a model. The
+    <code>tf.data.Dataset</code> class also has the added benefit that the whole
+    dataset does not have to be stored in memory to be read from, meaning large
+    datasets can be split up into portions cached on disk, in addition to other
+    convenient methods to improve training efficiency.
+  </p>
+  <app-cell [index]="7"></app-cell>
+  <h3>Assembling the Model</h3>
+  <p>
+    Finally, we can build our model. To begin, we create a Keras text
+    vectorisation layer and tweaks it so it indexes all the words in the
+    training dataset.
+  </p>
+  <app-cell [index]="8"></app-cell>
+  <p>
+    Next, we uses the <code>tf.keras.Sequential</code> class to create a new
+    model with an embedding layer to learn the meanings of the encoder’s words,
+    a bidirectional GRU layer to process the review, a dense layer to process
+    the output of the GRU and another dense layer to encode the output as a
+    one-hot vector (a vector filled with zeroes except for a one whose index
+    matches the encoded rating, in this case).
+  </p>
+  <app-cell [index]="9"></app-cell>
+  <p>
+    After creating the model, we configure which optimiser and loss function it
+    will use during training, in addition to specifying that we would like
+    TensorFlow to report the accuracy of the model each epoch. The
+    <code>tf.keras.losses.SparseCategoricalCrossentropy</code> loss compares the
+    output of the model to the correct numerical rating encoded as a one-hot
+    vector. The <code>from_logits</code> parameter indicates that the loss
+    function should expect the output from the last layer of the model to not
+    have passed through an activation function. This is preferred because an
+    activation function, such as sigmoid, can degrade the precision of the
+    output of the network, rendering the loss function less effective.
+  </p>
+  <app-cell [index]="10"></app-cell>
+  <h3>Training</h3>
+  <p>
+    Before training the network, you should create a TensorBoard callback to
+    write log files while training the model:
+  </p>
+  <app-cell [index]="11"></app-cell>
+  <p>
+    Afterwards, you can start TensorBoard take a look at how the model is doing
+    during training in real time by running:
+  </p>
+  <app-cell>$ tensorboard --logdir logs/</app-cell>
+  Output:
+  <pre class="hljs">
+Serving TensorBoard on localhost; to expose to the network, use a proxy or pass --bind_all
+TensorBoard 2.6.0 at http://localhost:6007/ (Press CTRL+C to quit)
+</pre
+  >
+  <p>
+    Then, you can open your browser to
+    <a href="http://localhost:6006">http://localhost:6006</a> (TensorBoard’s web
+    interface).
+  </p>
+  <p>
+    We can now begin training the network. A Keras model is trained by calling
+    <code>.fit</code> on it and passing relevant parameters, such as
+    <code>validation_data</code> (specifying the data to be used to evaluate the
+    model after training for an epoch) and <code>epochs</code> (the number of
+    iterations over the entire dataset).
+  </p>
+  <app-cell [index]="13"></app-cell>
+  <p>
+    Now, you can click on the refresh button in the top-right corner of
+    TensorBoard to load the training logs. Afterwards, be sure you are on the
+    ‘SCALARS’ tab to see the loss and accuracy (select it from the toolbar at
+    the top of the screen). You will have to continue reloading TensorBoard (or
+    enable periodic reloading by clicking on the settings icon in the top-right
+    corner) to view the new logs. Once training is over, TensorBoard should look
+    like this:
+  </p>
+  <img
+    appFullscreen
+    width="100%"
+    src="assets/posts/classifying-text-with-neural-networks/tensorboard.png"
+    alt="TensorBoard showing a loss and an accuracy graph for training and validation data"
+  />
+  <h3>Inference!</h3>
+  <p>Lastly, you can predict a rating on your very own fictional review:</p>
+  <app-cell [index]="14"></app-cell>
+  <h2>Conclusion</h2>
+  <p>
+    Recurrent neural networks are a great approach to processing interconnected
+    data of varying lengths. However, backpropagating vanilla RNNs can be a pain
+    because gradients tend to vanish or explode with many common activation
+    functions. Vanilla RNNs also have a hard time retaining information for many
+    iterations because they just don’t have a dedicated mechanism to store it
+    and learning how to do it themselves proves to be mostly unsuccessful.
+    Luckily, different RNN adaptations exist, such as the LSTM and GRU, that are
+    designed to innately remember things and can easily learn to prevent their
+    gradients from vanishing or exploding by regulating them with their gates.
+    To demonstrate the approach to classifying text using a GRU, we went through
+    the example of an online bookstore and built a book review classifier using
+    TensorFlow.
+  </p>
+  <p>
+    I hope you found this post useful. If you have any feedback, please drop me
+    a line on
+    <a href="https://github.com/rcerc/rcerc.github.io/discussions"
+      >GitHub Discussions</a
+    >. Thank you!
+  </p>
+  <h2>References</h2>
+  <p></p>
+  <div style="text-align: left">
+    This post relies on information from the following sources:
+    <ul>
+      <li>
+        <a href="https://en.wikipedia.org/wiki/Recurrent_neural_network">
+          Wikipedia - Recurrent neural network
+        </a>
+      </li>
+      <li>
+        <a
+          href="https://en.wikipedia.org/wiki/Bidirectional_recurrent_neural_networks"
+        >
+          Wikipedia - Bidirectional recurrent neural networks
+        </a>
+      </li>
+      <li>
+        <a href="https://en.wikipedia.org/wiki/Vanishing_gradient_problem">
+          Wikipedia - Vanishing gradient problem
+        </a>
+      </li>
+      <li>
+        <a href="https://colah.github.io/posts/2015-08-Understanding-LSTMs/">
+          colah's blog - Understanding LSTM Networks
+        </a>
+      </li>
+      <li>
+        <a href="https://en.wikipedia.org/wiki/Gated_recurrent_unit">
+          Wikipedia - Gated recurrent unit
+        </a>
+      </li>
+      <li>
+        <a
+          href="https://www.tensorflow.org/api_docs/python/tf/keras/layers/TextVectorization"
+        >
+          TensorFlow Documentation - tf.keras.layers.TextVectorization
+        </a>
+      </li>
+      <li>
+        <a
+          href="https://www.tensorflow.org/api_docs/python/tf/keras/layers/Embedding"
+        >
+          TensorFlow Documentation - tf.keras.layers.Embedding
+        </a>
+      </li>
+      <li>
+        <a
+          href="https://www.tensorflow.org/text/tutorials/text_classification_rnn"
+        >
+          TensorFlow Tutorials - Text classification with an RNN
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
