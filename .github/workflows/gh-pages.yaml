@@ -1,0 +1,35 @@
+name: GitHub Pages CD
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      BUILD_DIR: dist/rcerc-github-io
+    steps:
+      - uses: actions/checkout@v2
+      - name: Configure Git
+        run: git config user.name "$GITHUB_WORKFLOW"
+      - name: Install build dependencies
+        run: npm install
+      - name: Build Angular project
+        run: |
+          npm run build
+          cp "$BUILD_DIR/"{index.html,404.html}
+      - name: Bundle Fantasque Sans Mono license
+        env:
+          FONT_NAME: Fantasque Sans Mono
+          SOURCE_FILE: src/assets/fonts/fantasque-sans-mono/COPYING
+          TARGET_FILE: ${{ env.BUILD_DIR }}/3rdpartylicenses.txt
+        run: cat <(echo -e "\n\n\n$FONT_NAME") "$SOURCE_FILE" >> "$TARGET_FILE"
+      - name: Publish build
+        env:
+          REMOTE_NAME: origin
+          BRANCH_NAME: gh-pages
+        run: |
+          git add --force "$BUILD_DIR"
+          git commit --message "Build"
+          git subtree split --prefix "$BUILD_DIR" --branch "$BRANCH_NAME"
+          git push --force "$REMOTE_NAME" "$BRANCH_NAME"
