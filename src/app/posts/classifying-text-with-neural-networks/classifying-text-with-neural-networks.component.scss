@@ -1,4 +1,4 @@
-@use "styles/code";
+@use "/src/partials/code";
 
 :host {
   background-color: linen;
@@ -19,23 +19,6 @@
     text-align: justify;
     text-indent: 2em;
   }
-}
-
-code,
-kbd {
-  border-radius: 2px;
-  color: linen;
-  padding: 3px 4px;
-  line-height: 1.6em;
-}
-
-code {
-  background-color: black;
-}
-
-kbd {
-  background-color: silver;
-  color: black;
 }
 
 polyline {

@@ -1,7 +1,7 @@
-<pre #hljs class="hljs"></pre>
+<pre><code #hljs></code></pre>
 <div *ngIf="outputs?.length">
   Output:
-  <pre class="hljs" *ngFor="let o of outputs">{{ o }}</pre>
+  <pre *ngFor="let o of outputs"><code>{{ o }}</code></pre>
 </div>
 <div #wrapper hidden>
   <ng-content></ng-content>

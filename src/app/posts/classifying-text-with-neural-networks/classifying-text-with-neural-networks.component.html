@@ -1101,8 +1101,7 @@
   <p>To begin, install or upgrade the Python TensorFlow library using pip:</p>
   <app-cell>$ pip install --upgrade tensorflow</app-cell>
   Output:
-  <pre class="hljs">
-Requirement already satisfied: tensorflow in ./.venv/lib/python3.9/site-packages (2.6.0)
+  <pre><code>Requirement already satisfied: tensorflow in ./.venv/lib/python3.9/site-packages (2.6.0)
 Requirement already satisfied: termcolor~=1.1.0 in ./.venv/lib/python3.9/site-packages (from tensorflow) (1.1.0)
 Requirement already satisfied: keras-preprocessing~=1.1.2 in ./.venv/lib/python3.9/site-packages (from tensorflow) (1.1.2)
 Requirement already satisfied: six~=1.15.0 in ./.venv/lib/python3.9/site-packages (from tensorflow) (1.15.0)
@@ -1140,9 +1139,7 @@ Requirement already satisfied: certifi>=2017.4.17 in ./.venv/lib/python3.9/site-
 Requirement already satisfied: idna<4,>=2.5 in ./.venv/lib/python3.9/site-packages (from requests<3,>=2.21.0->tensorboard~=2.6->tensorflow) (3.2)
 Requirement already satisfied: charset-normalizer~=2.0.0 in ./.venv/lib/python3.9/site-packages (from requests<3,>=2.21.0->tensorboard~=2.6->tensorflow) (2.0.4)
 Requirement already satisfied: urllib3<1.27,>=1.21.1 in ./.venv/lib/python3.9/site-packages (from requests<3,>=2.21.0->tensorboard~=2.6->tensorflow) (1.26.6)
-Requirement already satisfied: oauthlib>=3.0.0 in ./.venv/lib/python3.9/site-packages (from requests-oauthlib>=0.7.0->google-auth-oauthlib<0.5,>=0.4.1->tensorboard~=2.6->tensorflow) (3.1.1)
-</pre
-  >
+Requirement already satisfied: oauthlib>=3.0.0 in ./.venv/lib/python3.9/site-packages (from requests-oauthlib>=0.7.0->google-auth-oauthlib<0.5,>=0.4.1->tensorboard~=2.6->tensorflow) (3.1.1)</code></pre>
   <p>
     Usually, one would do this in a virtual environment to leave the user-wide
     site-packages clean. If you’re interested in doing that, take a look at
@@ -1231,11 +1228,8 @@ Requirement already satisfied: oauthlib>=3.0.0 in ./.venv/lib/python3.9/site-pac
   </p>
   <app-cell>$ tensorboard --logdir logs/</app-cell>
   Output:
-  <pre class="hljs">
-Serving TensorBoard on localhost; to expose to the network, use a proxy or pass --bind_all
-TensorBoard 2.6.0 at http://localhost:6007/ (Press CTRL+C to quit)
-</pre
-  >
+  <pre><code>Serving TensorBoard on localhost; to expose to the network, use a proxy or pass --bind_all
+TensorBoard 2.6.0 at http://localhost:6007/ (Press CTRL+C to quit)</code></pre>
   <p>
     Then, you can open your browser to
     <a href="http://localhost:6006">http://localhost:6006</a> (TensorBoard’s web
