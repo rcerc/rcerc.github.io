@@ -44,7 +44,17 @@
       <circle r="12" fill="none" stroke="linen" stroke-width="2" />
     </g>
     <rect id="layer" x="-16" y="-16" width="32" height="32" />
-    <rect id="cell" x="-16" y="-16" width="32" height="32" rx="8" />
+    <g id="cell">
+      <rect x="-16" y="-16" width="32" height="32" rx="8" />
+      <text
+        text-anchor="middle"
+        dominant-baseline="middle"
+        fill="linen"
+        font-size="12px"
+      >
+        cell
+      </text>
+    </g>
     <use id="empty" href="#layer" fill="linen" />
     <rect id="intersection" x="-8" y="-8" width="16" height="16" fill="linen" />
     <text
@@ -167,15 +177,6 @@
         <use href="#cell" y="64" />
         <use href="#empty" y="128"></use>
         <text text-anchor="middle" dominant-baseline="middle" x="64">out</text>
-        <text
-          text-anchor="middle"
-          dominant-baseline="middle"
-          y="64"
-          fill="linen"
-          font-size="12px"
-        >
-          cell
-        </text>
         <text text-anchor="middle" dominant-baseline="middle" y="128">in</text>
       </g>
     </defs>
