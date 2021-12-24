@@ -1,0 +1,10 @@
+@use "hljs";
+
+.block {
+  @extend .hljs;
+  border-radius: 4px;
+  font-family: inherit;
+  padding: 12px 16px;
+  overflow-x: auto;
+  text-align: left;
+}

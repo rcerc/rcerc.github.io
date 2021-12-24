@@ -1,0 +1,7 @@
+@use "snippet";
+
+kbd {
+  @extend .snippet;
+  background-color: silver;
+  color: black;
+}
