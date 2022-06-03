@@ -33,6 +33,11 @@ export class CellComponent implements AfterViewInit {
       this.highlight(innerText);
     } else if (this.index !== undefined) {
       const cell = await this.nb.requestCell(this.index).toPromise();
+      if (!cell) {
+        console.error(`cell ${this.index} not found`);
+
+        return;
+      }
       const code = cell.source.join('');
       this.highlight(code);
       this.outputs = cell.outputs
