@@ -1,0 +1,51 @@
+<div><i>r</i><sub>-1</sub></div>
+<div
+  class="input-cell"
+> = <input type="number" min="1" [(ngModel)]="a" (ngModelChange)="aChange.emit(a)" [size]="inputA.value.length" #inputA></div>
+
+<div><i>r</i><sub>0</sub></div>
+<div
+  class="input-cell"
+> = <input type="number" min="1" [(ngModel)]="b" (ngModelChange)="bChange.emit(b)" [size]="inputB.value.length" #inputB></div>
+
+<div><i>r</i><sub>{{ steps.length - 1 }}</sub></div>
+<div> = <i>r</i><sub>{{ steps.length - 3 }}</sub></div>
+<div> - <i>q</i><sub>{{ steps.length - 1 }}</sub><i>r</i><sub>{{ steps.length - 2 }}</sub></div>
+<div></div>
+
+<div></div>
+<div> = 1<i>r</i><sub>{{ steps.length - 3 }}</sub></div>
+<div> - <b>{{ steps[steps.length - 2].q }}</b><i>r</i><sub>{{ steps.length - 2 }}</sub></div>
+<div></div>
+
+<ng-container *ngFor="let i of i; last as isLast; count as len">
+  <div></div>
+  <div> = {{ u[i + 2] }}<i>r</i><sub>{{ i }}</sub></div>
+  <div> {{ prefixSign(u[i + 1]) }}(<b><i>r</i><sub>{{ i - 1 }}</sub></b></div>
+  <div><b> - <i>q</i><sub>{{ i + 1 }}</sub><i>r</i><sub>{{ i }}</sub></b>)</div>
+
+  <div></div>
+  <div> = {{ u[i + 2] }}<i>r</i><sub>{{ i }}</sub></div>
+  <div> {{ prefixSign(u[i + 1]) }}(<i>r</i><sub>{{ i - 1 }}</sub></div>
+  <div> - <b>{{ steps[i].q }}</b><i>r</i><sub>{{ i }}</sub>)</div>
+
+  <div></div>
+  <div> = {{ u[i + 2] }}<i>r</i><sub>{{ i }}</sub></div>
+  <div> {{ prefixSign(u[i + 1]) }}<i>r</i><sub>{{ i - 1 }}</sub></div>
+  <div> {{ prefixSign(u[i + 1] * -steps[i].q) }}<i>r</i><sub>{{ i }}</sub></div>
+
+  <div></div>
+  <div> = {{ u[i + 1] }}<i>r</i><sub>{{ i - 1 }}</sub></div>
+  <div> {{ prefixSign(u[i]) }}<i>r</i><sub>{{ i }}</sub></div>
+  <div></div>
+</ng-container>
+
+<div></div>
+<div> = {{ u[1] }}(<b>{{ a }}</b>)</div>
+<div> {{ prefixSign(u[0]) }}(<b>{{ b }}</b>)</div>
+<div></div>
+
+<div></div>
+<div> = {{ u[1] * steps[-2].r + u[0] * steps[-1].r }}</div>
+<div></div>
+<div></div>

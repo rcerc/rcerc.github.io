@@ -1,0 +1,402 @@
+<div id="column">
+  <h1 id="title">Making Lemonade and Modular Inverses</h1>
+  <p>
+    This article is about the Euclidean algorithm, its extension and some of its
+    applications. It includes a short fictitious story for context.
+  </p>
+  <h2>The Plot</h2>
+  <p>
+    After a tiresome day of adding fractions, Bob sits down for a glass of
+    lemonade, or so he thinks. Since the jug is empty, Bob takes out his trusty
+    recipe, some sugar and a few lemons. Unfortunately, his measuring cup is
+    nowhere to be seen. A look in the cupboard rewards Bob with a
+    \(1295\)&nbsp;mL cooking pot and a \(300\)&nbsp;mL glass. To his
+    disappointment, the recipe calls for exactly \(3100\)&nbsp;mL of water, and
+    he does not want to deal with scaling it because he has had enough of ratios
+    for the day. Bob wonders whether he could add and remove water from the jug
+    using the pot and the glass so that he ends up with exactly the right amount
+    of water for the lemonade. To solve Bob’s problem, we will use the Euclidean
+    algorithm and its extension.
+  </p>
+  <h2>The Euclidean Algorithm</h2>
+  <p>
+    The Euclidean algorithm is used to calculate the greatest common divisor
+    (GCD) between two numbers. While the algorithm has been known for more than
+    23 centuries,
+    <a href="https://en.wikipedia.org/wiki/Binary_GCD_algorithm"
+      >variations of it</a
+    >
+    have been introduced for computers as recently as the 1960s.
+  </p>
+  <p>
+    We start the algorithm with the two positive integers for which we want to
+    calculate the GCD and label them \({{ 'r_{-1}' }}\) and \(r_0\) (where
+    \(r_{{ '{-1}' }} > r_0\)). The Euclidean algorithm produces a list of
+    intermediate remainders, so we will refer to the \(n\)th remainder as
+    \(r_n\). To calculate the GCD of \({{ 'r_{-1}' }}\) and \(r_0\), we follow
+    the steps below:
+  </p>
+  <ol style="text-align: left">
+    <li>
+      Set \(n\) to \(1\) (\(n\) will be used to identify the current iteration).
+    </li>
+    <li>
+      Do the Euclidean division (i.e., division with remainder) \({{
+      '\\frac{r_{n - 2
+      }}{r_{n - 1}}' }}\), and store the remainder in \(r_n\) and the quotient
+      in \(q_n\). Thus, we can say that \({{
+        'r_{n - 2} = q_nr_{n - 1} + r_n'
+      }}\), which we can rewrite as \({{ 'r_n = r_{n - 2} - q_nr_{n - 1}' }}\).
+    </li>
+    <li>
+      If \(r_n \ne 0\) (i.e., a remainder was left over), then increment \(n\)
+      by \(1\) and return to the second step. Otherwise, decrement \(n\) by
+      \(1\) so that \(r_n\) refers to the last nonzero remainder. \({{
+        '\\gcd\\left (r_{-1},
+      r_0\\right )'
+      }}\) is stored in \(r_n\).
+    </li>
+  </ol>
+  <p>
+    Note that since \(n\) began at \(1\) and increased by \(1\) every time we
+    returned to the second step (except when the remainder would be \(0\)),
+    \(n\) equals the number of times the algorithm divided (in the second step)
+    and obtained a nonzero remainder. Below is an interactive demonstration of
+    the Euclidean algorithm with the volumes of Bob’s cup and pot as default
+    inputs. You can change the values of \({{ 'r_{-1}' }}\) and \(r_0\) using
+    the arrows in the number inputs below or just by typing into them.
+  </p>
+  <app-euclidean-algorithm
+    [(a)]="a"
+    [(b)]="b"
+    (stepsChange)="steps = $event"
+    (gcdChange)="gcd = $event"
+  ></app-euclidean-algorithm>
+  <p>
+    Indeed, <i>r<sub>n</sub></i> = {{ gcd }} divides <i>r</i><sub>-1</sub> =
+    {{ a }} and <i>r</i><sub>0</sub> = {{ b }}, leaving coprime quotients ({{
+      a
+    }}
+    / {{ gcd }} = {{ a / gcd }} and {{ b }} / {{ gcd }} = {{ b / gcd }}). Since
+    the quotients are coprime, {{ gcd }} is the GCD of {{ a }} and {{ b }}. This
+    is great, but why does the Euclidean algorithm work? To answer this, we’ll
+    go through two steps.
+  </p>
+  <h3>Step 1</h3>
+  <p>
+    From now on, we will refer to \({{
+      '\\gcd\\left (r_{-1},
+    r_0\\right )'
+    }}\) as \(g\). We’ll also use the notation \(a \mid b\) to say that \(a\)
+    divides \(b\) (i.e., \(b\) is a multiple of \(a\)).
+  </p>
+  <p>In this first step, we show that \(g \mid r_n\).</p>
+  <p>
+    Our two inputs to the Euclidean algorithm were \({{ 'r_{-1}' }}\) and
+    \(r_0\), hence \({{ 'g \\mid r_{-1}' }}\) and \(g \mid r_0\). Since \(g\)
+    divides every term in the difference \({{ 'r_{-1} - q_1r_0 = r_1' }}\), it
+    also divides \(r_1\). Similarly, for \(r_2\), we have:
+  </p>
+  \({{
+    '
+    \\left .
+      \\begin{align}
+        g \\mid r_0 \\\\
+        g \\mid r_1 \\\\
+        r_2 = r_0 - q_2r_1
+      \\end{align}
+    \\right \\}
+    \\implies g \\mid r_2
+  '
+  }}\)
+  <p>
+    In general, a remainder can be expressed as a sum of multiples of the two
+    remainders that precede it. Thus, if \(g\) divides the two preceding
+    remainders, then \(g\) also divides the current remainder. We can repeat
+    this from \({{ 'r_{-1}' }}\) and \(r_0\) all the way up to \(r_n\). This
+    means that \(g \mid r_n\).
+  </p>
+  <h3>Step 2</h3>
+  <p>We now prove that \(r_n \mid g\) too.</p>
+  <p>
+    For any \(k\) from \(1\) through \(n + 1\), we have \({{
+      'r_{k -
+    2} = q_kr_{k - 1} + r_k'
+    }}\). Thus, if we let \(k = n + 1\), then we get \({{
+      'r_{n - 1} = q_{n + 1}r_n + r_{n + 1}'
+    }}\). We know that \({{ 'r_{n + 1} = 0' }}\) because we undid the increment
+    of \(n\) once we reached a zero remainder in the Euclidean algorithm, so
+    \({{ 'r_{n - 1} = q_{n + 1}r_n + r_{n + 1}' }}\) simplifies to \({{
+      'r_{n - 1} = q_{n + 1}r_n'
+    }}\). Since \({{ 'r_n \\mid q_{n +
+    1}r_n' }}\), this tells us that \({{
+      'r_n \\mid r_{n - 1}'
+    }}\) too. If we let \(k = n\), then \({{
+      'r_{k - 2} = q_kr_{k - 1} +
+    r_k'
+    }}\) becomes \({{ 'r_{n - 2} = q_nr_{n - 1} + r_n' }}\). Since \({{
+      'q_nr_{n - 1} + r_n'
+    }}\) is a sum of multiples of \(r_n\) (as \({{ 'r_n \\mid r_{n - 1}' }}\)),
+    we get \({{ 'r_n
+    \\mid r_{n - 2}' }}\) too. Similarly:
+  </p>
+  \({{
+    '
+    \\left .
+      \\begin{align}
+        r_n \\mid r_{n - 1} \\\\
+        r_n \\mid r_{n - 2} \\\\
+        r_{n - 3} = r_{n - 1} + q_nr_{n - 2}
+      \\end{align}
+    \\right \\}
+    \\implies r_n \\mid r_{n - 3}
+  '
+  }}\)
+  <p>
+    In general, a remainder can be expressed as a sum of multiples of the two
+    remainders that follow it. Thus, if \(r_n\) divides the two following
+    remainders, then \(r_n\) also divides the current remainder. Using the same
+    logic as in the first step of the solution, we find that \(r_n\) is a
+    divisor shared by \({{ 'r_{-1}' }}\) and \(r_0\). Since \(g\) is the
+    <em>greatest</em> divisor shared by \({{ 'r_{-1}' }}\) and \(r_0\), \(r_n
+    \le g\).
+  </p>
+  <p>
+    From step 1, we have \(g \mid r_n \implies g \le r_n\), and from step 2, we
+    have \(r_n \le g\). Together, this means that \(r_n = g\). In other words,
+    \(r_n\) (the last nonzero remainder) equals \(g\) (the GCD).
+  </p>
+  <h3>Applications of the Euclidean Algorithm</h3>
+  <p>
+    Aside from the algorithm being the foundation of the extended Euclidean
+    algorithm, it can help us reduce fractions using the GCDs it outputs. It’s
+    also possible to compute the LCM (least common multiple) of two positive
+    integers \({{ 'r_{-1}' }}\) and \(r_0\) if we know \({{
+      '\\gcd\\left (r_{-1}, r_0\\right )'
+    }}\) because \({{
+      '\\operatorname{lcm}\\left (r_{-1}, r_0\\right ) =
+    \\frac{r_{-1}r_0}{\\gcd\\left (r_{-1}, r_0\\right )}'
+    }}\). (Since \({{ '\\gcd\\left (r_{-1}, r_0\\right )' }}\) is the largest
+    divisor of both \({{ 'r_{-1}' }}\) and \(r_0\), we divide \({{
+      'r_{-1}r_0'
+    }}\) by \({{ '\\gcd\\left (r_{-1}, r_0\\right )' }}\) to cancel the
+    duplicate \({{ '\\gcd\\left (r_{-1}, r_0\\right )' }}\) in \({{
+      'r_{-1}r_0'
+    }}\).) With both a GCD and an LCM, we are then able to add fractions too.
+  </p>
+  <p>
+    The Euclidean algorithm also applies to single-variable polynomials. In case
+    you’d like an example, here are polynomial inputs for \({{ 'r_{-1}' }}\) and
+    \(r_0\) and the \({{ '\\gcd\\left (r_{-1}, r_0\\right )' }}\) that the
+    polynomial version of the algorithm outputs:
+  </p>
+  {{
+    '
+      \\begin{align}
+        r_{-1} & = 2x^4 - 14x^3 - 38x^2 + 326x - 420 \\\\
+        & = 2\\left (x - 7\\right )\\left (x - 3\\right )\\left (x - 2\\right )\\left (x + 5\\right ) \\\\
+        r_0 & = 6x^3 + 42x^2 - 30x - 450 \\\\
+        & = 6\\left (x - 3\\right )\\left (x + 5\\right )^2 \\\\
+        \\gcd\\left (r_{-1}, r_0\\right ) & = x^2 + 2x - 15 \\\\
+        & = \\left (x - 3\\right )\\left (x + 5\\right )
+      \\end{align}
+    '
+  }}
+  <p>
+    \({{ '\\gcd\\left (r_{-1}, r_0\\right ) = x^2 + 2x - 15' }}\) because \(x^2
+    + 2x - 15\) is the monic polynomial of the greatest degree that divides both
+    \({{ 'r_{-1}' }}\) and \(r_0\).
+  </p>
+  <h2>The Extended Euclidean Algorithm</h2>
+  <p>
+    We are now going to look at how the Euclidean Algorithm can help Bob find
+    the right combination of pours and scoops with his cooking pot and glass to
+    fill the lemonade jug up to exactly \(3100\)&nbsp;mL of water.
+  </p>
+  <p>
+    Since every remainder generated by the Euclidean algorithm is expressed as a
+    sum of multiples of the previous two (as expressed in the general equation
+    \({{ 'r_k = r_{k - 2} - q_kr_{k - 1}' }}\)), every remainder \(r_k\) can be
+    written as a sum of multiples of the original two: \({{ 'r_{-1}' }}\) and
+    \(r_0\) (the inputs to the algorithm). This means that \(r_n\), the GCD, can
+    be written as \({{ 'ur_{-1} + vr_0' }}\), where \(u\) and \(v\) are
+    integers:
+  </p>
+  \({{ '\\gcd\\left (r_{-1}, r_0\\right ) = r_n = ur_{-1} + vr_0' }}\)
+  <p>
+    The extended Euclidean algorithm substitutes the expressions for earlier
+    remainders (e.g., the right-hand side of \({{
+      'r_k = r_{k
+    - 2} - q_kr_{k - 1}'
+    }}\)) into the expressions for later ones so that we can eventually write
+    \(r_n\) in terms of \({{ 'r_{-1}' }}\) and \(r_0\). (The demonstration below
+    obtains the quotients and remainders from the previous demonstration.)
+  </p>
+  <app-extended-euclidean-algorithm
+    [(a)]="a"
+    [(b)]="b"
+    [steps]="steps"
+  ></app-extended-euclidean-algorithm>
+  <p>
+    Substitutions are shown above in bold. Since the algorithm finds that
+    \(19\left (1295\right ) - 82\left (300\right ) = 5\), Bob could pour \(19\)
+    cooking pots of water into his lemonade jug and take out \(82\) glasses to
+    wind up with \(5\)&nbsp;mL of water in the jug. He wants \(3100\)&nbsp;mL,
+    but that is also manageable. \(\gcd\left (1295, 300\right ) = 5\) is
+    ‘coincidentally’ a divisor of \(3100\). If we multiply both sides of the
+    equation \(19\left (1295\right ) - 82\left (300\right ) = 5\) by \({{
+      '\\frac{3100}{5} = 620'
+    }}\), we get:
+  </p>
+  {{
+    '
+      \\begin{align}
+        & 620\\left (19\\left (1295\\right ) - 82\\left (300\\right )\\right ) & & = 620\\left (5\\right ) \\\\
+        = {} & 11780\\left (1295\\right ) - 50840\\left (300\\right ) & & = 3100
+      \\end{align}
+    '
+  }}
+  <p>
+    This means that Bob could pour in \(11780\) potfuls and take out \(50840\)
+    glassfuls to obtain \(3100\)&nbsp;mL of water. It sounds like a lot of work
+    to Bob, but we can modify our equation to use smaller numbers. We introduce
+    an arbitrary integer \(k\) and add \(\left (1295\right )\left (300\right )k
+    - \left (1295\right )\left (300\right )k = 0\) to the right-hand side of our
+    equation and then incorporate \(\left (1295\right )\left (300\right )k\) and
+    \(-\left (1295\right )\left (300\right )k\) into the two products:
+  </p>
+  {{
+    '
+    \\begin{align}
+      3100 & = 11780\\left (1295\\right ) - 50840\\left (300\\right ) + \\boldsymbol{\\left (1295\\right )\\left (300\\right )k} - \\boldsymbol{\\left (1295\\right )\\left (300\\right )k} \\\\
+      & = \\left (11780 + \\boldsymbol{300k}\\right )\\boldsymbol{1295} - \\left (50840 + \\boldsymbol{1295k}\\right )\\boldsymbol{300}
+    \\end{align}
+  '
+  }}
+  <p>
+    We now have a family of equations of the form \(u1295 + v300 = 3100\) that
+    we can choose from to help plan the production of lemonade. For example, we
+    could let \(k = -39\), getting a smaller number of operations for Bob:
+  </p>
+  {{
+    '
+    \\begin{align}
+      3100 & = \\left (11780 + 300\\left (-39\\right )\\right )1295 - \\left (50840 + 1295\\left (-39\\right )\\right )300 \\\\
+      & = \\left (11780 - 11700\\right )1295 - \\left (50840 - 50505\\right )300 \\\\
+      & = \\left (80\\right )1295 - \\left (335\\right )300
+    \\end{align}
+  '
+  }}
+  <p>
+    Bob could now pour \(80\) potfuls of water and remove \(335\) glassfuls to
+    get exactly the right amount of water for the lemonade, which is a slight
+    improvement.
+  </p>
+  <p>
+    The equation \(u1295 + v300 = 3100\) when only considering integer values
+    for \(u\) and \(v\) is called a linear
+    <a href="https://en.wikipedia.org/wiki/Diophantine_equation"
+      >Diophantine equation</a
+    >. The extended Euclidean algorithm can solve these types of equations.
+  </p>
+  <h2>Modular Multiplicative Inverses</h2>
+  <p>
+    An arguably more useful application of the extended Euclidean algorithm than
+    making lemonade is calculating modular multiplicative inverses. These are
+    similar to conventional multiplicative inverses, such as \(6\) and \(\frac 1
+    6\), but are found in modular arithmetic instead. In modular arithmetic, the
+    results of all operations fit within the range of integers from \(0\)
+    through \(1\) less than a positive value called the <i>modulus</i>. For
+    example, the range of integers for a modulus of \(7\) is \({{
+      '\\left \\{0, 1, 2, 3, 4, 5, 6\\right
+    \\}'
+    }}\).
+  </p>
+  <p>
+    While in conventional arithmetic \(4 + 5 = 9\), in modulo \(7\) arithmetic,
+    \(4 + 5\) results in \(9 - 7 = 2\) because the result ‘wraps around’ once it
+    reaches \(7\). Similarly, differences and products of integers shift into
+    the modulus’s range of results by adding or subtracting multiples of the
+    modulus to them. When two expressions \(a\) and \(b\) end up at the same
+    element of the set of results for a modulus \(m\), we write \(a \equiv b
+    \bmod m\) (i.e., \(a\) is congruent to \(b\) modulo \(m\)). Returning to our
+    original example, \(4 + 5 \equiv 2 \bmod 7\).
+  </p>
+  <p>
+    When the product of a multiplication between two operands is congruent to
+    \(1\) modulo \(m\) (where \(m\) is an arbitrary modulus), we say that the
+    operands are modular multiplicative inverses of each other modulo \(m\).
+    This is just like how the product of a number and its multiplicative inverse
+    is \(1\) in regular arithmetic (e.g., \(6 \cdot \frac 1 6 = 1\)). For
+    example, \(3\) and \(5\) are modular multiplicative inverses modulo \(7\)
+    because \(3 \cdot 5 = 15 \equiv 1 \bmod 7\).
+  </p>
+  <p>
+    If \(v\) and \(a\) are multiplicative inverses modulo \(m\), then by
+    definition \(va \equiv 1 \bmod m\). This means that there is some integer
+    \(u\) such that \(um + va = 1\). Let’s relate this expression to \(\gcd\left
+    (m, a\right )\):
+  </p>
+  \({{
+    '
+    \\left .
+      \\begin{array}{l}
+        \\gcd\\left (m, a\\right ) \\mid m \\\\
+        \\gcd\\left (m, a\\right ) \\mid a
+      \\end{array}
+    \\right \\}
+    \\implies \\gcd\\left (m, a\\right ) \\mid um + va
+  '
+  }}\)
+  <p>
+    Since \(\gcd\left (m, a\right ) \mid um + va\) and \(um + va = 1\), we have
+    \(\gcd\left (m, a\right ) \mid 1\), which is only true when \(\gcd\left (m,
+    a\right ) = 1\). In that case, we can write:
+  </p>
+  \(um + va = 1 = \gcd\left (m, a\right )\)
+  <p>
+    This resembles \({{
+      'ur_{-1} + vr_0 = \\gcd\\left (r_{-1},
+      r_0\\right )'
+    }}\), the kind of equation we saw in the previous section for which the
+    extended Euclidean algorithm can calculate integer coefficients \(u, v\).
+    Thus, we are able to use the algorithm to find \(v\), which is the
+    multiplicative inverse of \(a\) modulo \(m\).
+  </p>
+  <p>
+    As an example, let’s calculate the modular multiplicative inverse of \(a =
+    31\) modulo \(m = 97\). Using the extended Euclidean algorithm to find a
+    solution to the equation \(um + va = \gcd\left (m, a\right )\), we get:
+  </p>
+  \(8\left (97\right ) - 25\left (31\right ) = 1\)
+  <p>
+    Therefore, \(v = -25\) is the modular multiplicative inverse of \(a = 31\)
+    modulo \(m = 97\). Inconveniently, \(-25 < 0\), but we can easily bring it
+    between \(0\) and \(97\) by adding \(97\) to get \(-25 + 97 = 72\) as the
+    modular multiplicative inverse of \(31\) modulo \(97\). (The addition is
+    allowed because \(97 \equiv 0 \bmod 97\).)
+  </p>
+  <p>
+    Modular multiplicative inverses are important in cryptography, such as in
+    the RSA cryptosystem, which is frequently used as a base to securely share
+    secret keys of other faster encryption schemes and to sign hashes to
+    reliably distribute data. Therefore, it is essential that they can be
+    calculated fast and without guesswork.
+  </p>
+  <h2>Conclusion</h2>
+  <p>
+    Besides computing GCDs, the Euclidean algorithm can help with operations
+    involving LCMs, fractions and polynomials. The extended algorithm can do
+    even more, including solving linear Diophantine equations and calculating
+    modular multiplicative inverses, which are now used so often in today’s
+    digital world. This goes to show how important such a seemingly simple
+    algorithm is to our daily lives.
+  </p>
+  <p>
+    I hope you enjoyed this article. If you have any feedback, please drop me a
+    line on
+    <a href="https://github.com/rcerc/rcerc.github.io/discussions"
+      >GitHub Discussions</a
+    >. Thank you!
+  </p>
+</div>

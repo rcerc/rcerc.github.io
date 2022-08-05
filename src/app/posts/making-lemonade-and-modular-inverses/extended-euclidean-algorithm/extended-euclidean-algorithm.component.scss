@@ -1,0 +1,33 @@
+@use "src/partials/hljs";
+
+.input-cell {
+  grid-column: 2 / -1;
+  line-height: 1.6em;
+  width: 100%;
+  display: flex;
+}
+
+.input-cell > input {
+  @extend .hljs;
+  flex: 1;
+  border-radius: 2px;
+  border: none;
+  padding-left: 4px;
+  margin: 2px;
+  font-family: inherit;
+
+  &:focus {
+    outline: 2px solid #c9d1d9;
+  }
+}
+
+:host {
+  display: inline-grid;
+  grid-template-columns: repeat(4, auto);
+  justify-items: left;
+  align-items: baseline;
+
+  > div {
+    white-space: pre;
+  }
+}

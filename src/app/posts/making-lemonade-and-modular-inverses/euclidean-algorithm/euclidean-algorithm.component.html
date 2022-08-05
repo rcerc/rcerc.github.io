@@ -1,0 +1,28 @@
+<div><i>r</i><sub>-1</sub></div>
+<div
+  class="input-cell"
+> = <input type="number" min="1" [(ngModel)]="a" (ngModelChange)="aChange.emit(a)" [size]="inputA.value.length" #inputA></div>
+
+<div><i>r</i><sub>0</sub></div>
+<div
+  class="input-cell"
+> = <input type="number" min="1" [(ngModel)]="b" (ngModelChange)="bChange.emit(b)" [size]="inputB.value.length" #inputB></div>
+
+<ng-container *ngFor="let step of steps; index as i; last as isLast">
+  <div><i>r</i><sub>{{ i + 1 }}</sub></div>
+  <div> = <i>r</i><sub>{{ i - 1 }}</sub></div>
+  <div> - <i>q</i><sub>{{ i + 1 }}</sub><i>r</i><sub>{{ i }}</sub></div>
+
+  <div></div>
+  <div> = {{ steps[i - 2].r }}</div>
+  <div> - {{ step.q }}({{ steps[i - 1].r }})</div>
+
+  <div></div>
+  <div> = {{ step.r }}</div>
+  <div></div>
+
+  <ng-container *ngIf="isLast">
+    <div><i>n</i></div>
+    <div> = {{ i }}</div>
+  </ng-container>
+</ng-container>

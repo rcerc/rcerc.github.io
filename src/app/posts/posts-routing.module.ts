@@ -9,6 +9,13 @@ const routes: Routes = [
         './classifying-text-with-neural-networks/classifying-text-with-neural-networks.module'
       ).then((m) => m.ClassifyingTextWithNeuralNetworksModule),
   },
+  {
+    path: 'making-lemonade-and-modular-inverses',
+    loadChildren: () =>
+      import(
+        './making-lemonade-and-modular-inverses/making-lemonade-and-modular-inverses.module'
+      ).then((m) => m.MakingLemonadeAndModularInversesModule),
+  },
   { path: '**', redirectTo: 'classifying-text-with-neural-networks' },
 ];
 
