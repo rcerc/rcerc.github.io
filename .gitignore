@@ -21,6 +21,7 @@ chrome-profiler-events*.json
 *.launch
 .settings/
 *.sublime-workspace
+*~
 
 # IDE - VSCode
 .vscode/*
@@ -40,6 +41,8 @@ npm-debug.log
 yarn-error.log
 testem.log
 /typings
+.envrc
+.direnv/
 
 # System Files
 .DS_Store

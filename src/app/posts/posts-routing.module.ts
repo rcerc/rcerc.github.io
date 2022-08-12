@@ -1,7 +1,16 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
+import { PostsComponent } from './posts.component';
+
 const routes: Routes = [
+  {
+    path: 'making-lemonade-and-modular-inverses',
+    loadChildren: () =>
+      import(
+        './making-lemonade-and-modular-inverses/making-lemonade-and-modular-inverses.module'
+      ).then((m) => m.MakingLemonadeAndModularInversesModule),
+  },
   {
     path: 'classifying-text-with-neural-networks',
     loadChildren: () =>
@@ -10,13 +19,10 @@ const routes: Routes = [
       ).then((m) => m.ClassifyingTextWithNeuralNetworksModule),
   },
   {
-    path: 'making-lemonade-and-modular-inverses',
-    loadChildren: () =>
-      import(
-        './making-lemonade-and-modular-inverses/making-lemonade-and-modular-inverses.module'
-      ).then((m) => m.MakingLemonadeAndModularInversesModule),
+    path: '**',
+    component: PostsComponent,
+    redirectTo: '',
   },
-  { path: '**', redirectTo: 'classifying-text-with-neural-networks' },
 ];
 
 @NgModule({

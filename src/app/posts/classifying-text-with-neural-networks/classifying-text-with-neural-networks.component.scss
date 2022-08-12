@@ -1,25 +1,5 @@
-@use "/src/partials/code";
-
-:host {
-  background-color: linen;
-  display: block;
-  text-align: center;
-  width: 100%;
-}
-
-#column {
-  display: inline-block;
-  box-sizing: border-box;
-  max-width: min(40em, 100%);
-  overflow-wrap: break-word;
-  padding: clamp(0px, 50vw - 20em, 20vh) 8px;
-  text-align: center;
-
-  p {
-    text-align: justify;
-    text-indent: 2em;
-  }
-}
+@use '/src/partials/article';
+@use '/src/partials/code';
 
 polyline {
   fill: none;
