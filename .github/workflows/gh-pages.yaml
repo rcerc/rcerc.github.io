@@ -11,7 +11,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Configure Git
-        run: git config user.name "$GITHUB_WORKFLOW"
+        run: |
+          git config user.name "$GITHUB_WORKFLOW"
+          git config user.email "<>"
       - name: Install build dependencies
         run: npm install
       - name: Build Angular project
