@@ -8,9 +8,8 @@ describe('ExtendedEuclideanAlgorithmComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ExtendedEuclideanAlgorithmComponent ]
-    })
-    .compileComponents();
+      imports: [ExtendedEuclideanAlgorithmComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ExtendedEuclideanAlgorithmComponent);
     component = fixture.componentInstance;

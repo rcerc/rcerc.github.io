@@ -10,6 +10,7 @@ import python from 'highlight.js/lib/languages/python';
 import shell from 'highlight.js/lib/languages/shell';
 
 import { NotebookService } from '../notebook/notebook.service';
+import { NgIf, NgFor } from '@angular/common';
 
 hljs.registerLanguage('python', python);
 hljs.registerLanguage('shell', shell);
@@ -18,6 +19,8 @@ hljs.registerLanguage('shell', shell);
   selector: 'app-cell',
   templateUrl: './cell.component.html',
   styleUrls: ['./cell.component.scss'],
+  standalone: true,
+  imports: [NgIf, NgFor],
 })
 export class CellComponent implements AfterViewInit {
   @ViewChild('hljs') pre?: ElementRef<HTMLPreElement>;

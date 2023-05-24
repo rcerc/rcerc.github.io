@@ -7,6 +7,7 @@ import {
 
 @Directive({
   selector: '[appFullscreen]',
+  standalone: true,
 })
 export class FullscreenDirective implements AfterContentInit {
   constructor(private readonly el: ElementRef<HTMLElement>) {}

@@ -5,6 +5,8 @@ import {
   OnChanges,
   Output,
 } from '@angular/core';
+import { NgFor } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 interface Step {
   r: number;
@@ -15,6 +17,8 @@ interface Step {
   selector: 'app-extended-euclidean-algorithm[a][b][steps]',
   templateUrl: './extended-euclidean-algorithm.component.html',
   styleUrls: ['./extended-euclidean-algorithm.component.scss'],
+  standalone: true,
+  imports: [FormsModule, NgFor],
 })
 export class ExtendedEuclideanAlgorithmComponent implements OnChanges {
   @Input() a!: number;

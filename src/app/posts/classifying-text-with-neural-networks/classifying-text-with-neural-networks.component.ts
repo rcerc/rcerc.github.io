@@ -1,10 +1,15 @@
 import { AfterViewInit, Component } from '@angular/core';
 import { Title } from '@angular/platform-browser';
+import { FullscreenDirective } from './fullscreen/fullscreen.directive';
+import { CellComponent } from './cell/cell.component';
+import { NgFor } from '@angular/common';
 
 @Component({
   selector: 'app-classifying-text-with-neural-networks',
   templateUrl: './classifying-text-with-neural-networks.component.html',
   styleUrls: ['./classifying-text-with-neural-networks.component.scss'],
+  standalone: true,
+  imports: [NgFor, CellComponent, FullscreenDirective],
 })
 export class ClassifyingTextWithNeuralNetworksComponent
   implements AfterViewInit

@@ -8,7 +8,7 @@ describe('ClassifyingTextWithNeuralNetworksComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ClassifyingTextWithNeuralNetworksComponent],
+      imports: [ClassifyingTextWithNeuralNetworksComponent],
     }).compileComponents();
   });
 

@@ -8,7 +8,7 @@ describe('MakingLemonadeAndModularInversesComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [MakingLemonadeAndModularInversesComponent],
+      imports: [MakingLemonadeAndModularInversesComponent],
     }).compileComponents();
   });
 

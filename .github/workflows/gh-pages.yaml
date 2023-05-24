@@ -9,7 +9,7 @@ jobs:
     env:
       BUILD_DIR: dist/rcerc-github-io
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Configure Git
         run: |
           git config user.name "$GITHUB_WORKFLOW"
