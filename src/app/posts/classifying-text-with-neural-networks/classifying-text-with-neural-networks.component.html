@@ -328,8 +328,8 @@
     weight w.r.t. the cost function of a neural network can become ‘vanishingly’
     small the further the chain rule is applied, due to certain non-linear
     activation functions like sigmoid and tanh (hyperbolic tangent), whose
-    derivatives are always between zero and one (specifically less than 0.25 and
-    1, respectively).
+    derivatives are always positive and no more than one (specifically less than
+    or equal to 0.25 and 1, respectively).
   </p>
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 -64 516 128">
     <text y="-10" font-size="12px">y = 0.25</text>
