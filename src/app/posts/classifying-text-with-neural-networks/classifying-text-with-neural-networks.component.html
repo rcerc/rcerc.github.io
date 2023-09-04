@@ -214,7 +214,7 @@
     </g>
   </svg>
   <p>
-    To express all this mathematically, we’ll consider \(W\) as the matrix of
+    To express all this symbolically, we’ll consider \(W\) as the matrix of
     weights that are to be applied to \(x_t\), where each row in \(W\)
     corresponds to a neuron in the cell. Another matrix of weights, \(U\), is
     applied to the previous cell’s output \(h_{{ "{t-1}" }}\). A bias (\(b\)) is
@@ -426,12 +426,12 @@
     cell state.
   </p>
   <p>
-    Note: you might have noticed that in the following diagrams, some arrows
-    merge together. This was done so that the diagrams could be more compact;
-    <em>not</em> to symbolise a concatenation of two vectors. Considering two
-    arrows that join together as two distinct values flowing to the same
-    destination also matches the format the variables are written in the
-    equations that will follow.
+    In the following diagrams, some arrows merge together. This was done so the
+    diagrams could be more compact; the column vectors moving along the arrows
+    are still referred to separately in the equations used here to describe
+    their destination layers. Instead, an implementation of these layers could
+    just concatenate the vectors and treat them with a single wider matrix of
+    weights.
   </p>
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -16 416 288">
     <defs>
@@ -578,11 +578,11 @@
     Notably, the forget gate in an LSTM decides what information should be kept
     in the cell state. It does so by examining the current input (\(x_t\)) and
     the output vector of the previous cell (\(h_{{ "{t-1}" }}\)) to decide how
-    important the values in the cell state (which is a vector) are. In practice,
-    this is done with the first sigmoid layer in the LSTM, which outputs a
-    vector with values ranging between zero (not of importance) and one (of
-    utmost importance) This is referred to as the forget gate’s activation
-    vector. Written with the mathematical notation, the forget gate looks like:
+    important the values in the cell state (which is a vector) are. This is done
+    with the first sigmoid layer in the LSTM, which outputs a vector with values
+    ranging between zero (not of importance) and one (of utmost importance) This
+    is referred to as the forget gate’s activation vector. The forget gate is
+    expressed as:
   </p>
   \(f_t=\sigma(W_fx_t+U_fh_{{ "{t-1}" }}+b_f)\)
   <p>
@@ -635,8 +635,7 @@
     Similar to the forget gate, the input gate is also equipped with a sigmoid
     layer which takes \(x_t\) and \(h_{{ "{t-1}" }}\) as inputs. However, this
     gate decides which values of the cell state should be updated based on the
-    current input and the old cell state. Mathematically, this gate is written
-    as:
+    current input and the old cell state. Symbolically, this gate is written as:
   </p>
   \(i_t=\sigma(W_ix_t+U_ih_{{ "{t-1}" }}+b_i)\)
   <p>
@@ -666,7 +665,7 @@
   <p>
     In addition to the sigmoid layer of the input gate, there exists a tanh
     layer that generates a vector of candidate changes to the cell state.
-    Mathematically, this is written as:
+    Symbolically, this is written as:
   </p>
   \(\tilde c=tanh(W_cx_t+U_ch_{{ "{t-1}" }}+b_c)\)
   <p>
@@ -706,7 +705,7 @@
     Finally, the cell state can be updated. Once again: the old cell state is
     multiplied element-wise by the forget gate activation vector. Then, it is
     incremented by the element-wise product of the input gate activation vector
-    and the candidate changes. Mathematically, this is written as:
+    and the candidate changes. Symbolically, this is written as:
   </p>
   \(c_t=f_t\odot c_{{ "{t-1}" }}+i_t\odot \tilde c\)
   <p>
@@ -782,12 +781,14 @@
   <p>
     The above process simply repeats for every new input to the LSTM network
     (e.g. every word in the book review). At the beginning, when \(t=0\), \(c_{{
-      "{t-1}"
-    }}\) and \(h_{{ "{t-1}" }}\) are considered to be vectors filled with zeroes
-    to give the LSTM a clean slate to write on. In addition to being capable of
-    easily retaining long-term information in the cell state, LSTM networks can
-    solve the vanishing and exploding gradient problems because their gates
-    learn to prevent the cell state gradient from converging to zero.
+    "{t-1}" }}\) and \(h_{{ "{t-1}" }}\) are considered to be vectors filled
+    with zeroes to give the LSTM a clean slate to write on. In addition to being
+    capable of easily retaining long-term information in the cell state, an LSTM
+    network reduces the vanishing gradient problem because its cell state does
+    not pass through an activation function with a derivative smaller in
+    magnitude than 1 (e.g., sigmoid) and because it can learn to control the
+    other factors in the cell state derivative to impede its vanishing when
+    going back many units in time.
   </p>
   <p>
     By now, I think it’s pretty obvious that LSTMs are pretty complex, slowing
@@ -1052,11 +1053,10 @@
     each index with a vector that best represents the corresponding word’s
     meaning. This alleviates the RNN of having to link similar words together
     and significantly improves model performance. For example, ‘child’ and ‘kid’
-    might be assigned similar vectors to simplify the network’s task. In
-    practice, embedding is usually done by storing a list of vectors whose
-    indices match the ones of the encoded words they map to. During training,
-    each vector is then tweaked to better match the meaning of its corresponding
-    word.
+    might be assigned similar vectors to simplify the network’s task. Embedding
+    is usually done by storing a list of vectors whose indices match the ones of
+    the encoded words they map to. During training, each vector is then tweaked
+    to better match the meaning of its corresponding word.
   </p>
   <h2>Putting It All Together</h2>
   <p>
@@ -1065,9 +1065,9 @@
     of its rich functionality and the small amount of code we would need to
     write to use it. TensorFlow currently provides language bindings from C++ to
     Python, Java, C and Go, in addition to a JavaScript API. There also exist
-    community-provided bindings to other languages if one chooses to use them.
-    However, we’ll write our program in Python because TensorFlow’s
-    documentation references the Python library.
+    community-provided bindings to other languages. However, we’ll write our
+    program in Python because TensorFlow’s documentation references the Python
+    library.
   </p>
   <p>
     Keras is an abstraction of TensorFlow, which simplifies designing models of
