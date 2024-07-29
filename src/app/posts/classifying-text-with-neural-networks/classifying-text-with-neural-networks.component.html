@@ -110,16 +110,18 @@
   <h1 id="title">Classifying Text With Neural Networks</h1>
   <p>
     You might have heard of recurrent neural networks (RNNs) and the role they
-    play in natural language processing (NLP). This post hopes to shine some
-    light on what RNNs are, how they have been used in text analysis, the
-    modifications made to them over time and how one can build their own RNN and
-    train it in Python using TensorFlow, a flexible machine learning library.
+    play in natural language processing (NLP). This post hopes to introduce
+    RNNs, how they have been used in text analysis, the modifications made to
+    them over time and how to construct an RNN and train it in Python using
+    TensorFlow, a flexible machine learning library.  However, this post is far
+    from a serious analysis, and yours truly is equally far from an expert on
+    the subject; only very lightly and informally shall the theory behind these
+    networks be touched.
   </p>
   <p>
-    This post assumes the reader is more or less familiar with neural networks
-    and related terms, such as weights, biases, neurons and activation
-    functions. If you aren’t sure what these are or just need to brush up, I
-    recommend going over
+    This post assumes the reader is somewhat familiar with neural networks and
+    related terms, such as weights, biases, neurons and activation functions. If
+    you aren’t sure what these are, suggested are
     <a
       href="https://www.youtube.com/playlist?list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi"
       >3blue1brown’s</a
@@ -323,13 +325,16 @@
   <i>sounds mysterious...</i>
   <p>
     Vanilla RNNs suffer from the vanishing gradient problem, which is an issue
-    that can appear when training many-layer neural networks and especially when
-    using limited-precision numbers to do so. The partial derivative of each
-    weight w.r.t. the cost function of a neural network can become ‘vanishingly’
-    small the further the chain rule is applied, due to certain non-linear
-    activation functions like sigmoid and tanh (hyperbolic tangent), whose
-    derivatives are always positive and no more than one (specifically less than
-    or equal to 0.25 and 1, respectively).
+    that can appear when training many-layer neural networks. The rate of change
+    of the cost function, by the chain rule, takes into account the effect of
+    (1) changing the weights for only the last recurrence, (2) changing the
+    weights for only the second-last recurrence, etc.  But, depending on how
+    small the weights and derivatives of the activation functions are, the terms
+    in this list can become increasingly small due to repeated multiplication of
+    numbers with magnitude less than \(1\).  (For example, sigmoid and tanh
+    (hyperbolic tangent) have derivatives that are positive and less than or
+    equal to 0.25 and 1, respectively.) Hence, the way the weights are updated
+    in training neglects their effect early on in time.
   </p>
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 -64 516 128">
     <text y="-10" font-size="12px">y = 0.25</text>
@@ -395,10 +400,9 @@
     </g>
   </svg>
   <p>
-    There’s also a similar issue of ‘exploding’ gradients, which can happen when
-    the activation functions used can have large derivatives (such as the
-    logarithm). This causes the change to the weights to overshoot and miss the
-    targeted minimum of the loss function.
+    There’s also an issue of ‘exploding’ gradients, which might happen when the
+    activation functions used can have large derivatives (such as the logarithm
+    near \(0\)). This causes the weights to be changed too coarsely.
   </p>
   <p>
     However, this is not a dead end! Some RNN variations address this issue.
@@ -406,20 +410,19 @@
   </p>
   <h3>Long Short-Term Memory Networks</h3>
   <p>
-    <a
-      href="https://www.researchgate.net/publication/13853244_Long_Short-term_Memory"
-      >Invented by Josef ‘Sepp’ Hochreiter and Jürgen Schmidhuber in 1997</a
-    >, LSTM (long short-term memory) networks are a more complex type of RNN
-    which are designed to retain important information from iteration to
-    iteration, all the while processing short-term aspects of the data. Each
-    cell of an LSTM network has a line feeding through it through which
-    information that is seldom modified is transported: the cell state, denoted
-    by \(c_t\). LSTMs also contain ‘gates’: mechanisms which only allow certain
-    information to pass through them. For example, the forget gate and input
-    gate control changes to the cell state to ensure only long-term dependencies
-    are stored in it. Additionally, there exists an output gate in each cell
-    that decides which information in the cell state might be important to the
-    next cell. Similar to conventional RNNs, LSTM networks directly pass this
+    <a href="https://www.researchgate.net/publication/13853244_Long_Short-term_Memory">Invented
+    by Josef Hochreiter and Jürgen Schmidhuber in 1997</a>, LSTM (long
+    short-term memory) networks are a more complex type of RNN which are
+    designed to retain important information from iteration to iteration, all
+    the while processing short-term aspects of the data. Each cell of an LSTM
+    network has a line feeding through it through which information that is
+    seldom modified is transported: the cell state, denoted by \(c_t\). LSTMs
+    also contain ‘gates’: mechanisms which only allow certain information to
+    pass through them. For example, the forget gate and input gate control
+    changes to the cell state to ensure only long-term dependencies are stored
+    in it. Additionally, there exists an output gate in each cell that decides
+    which information in the cell state might be important to the next
+    cell. Similar to conventional RNNs, LSTM networks directly pass this
     short-term information selected from the cell state from one cell to the
     next. This permits the network to focus on certain information that is
     pertinent at the moment, without losing information that is stored in the
@@ -605,8 +608,8 @@
   <p>
     The ‘3’ in the second vector is not of any importance according to the
     arbitrary activation vector on the left because the element it is multiplied
-    by is ‘0’. On the other hand, ‘-7’ is of <em>utmost importance</em> because
-    the second element of the activation vector is ‘1’, allowing it to pass
+    by is ‘0’. On the other hand, ‘-7’ is of utmost importance because the
+    second element of the activation vector is ‘1’, allowing it to pass
     unchanged. ‘5’ is in between; it is of some importance because the
     corresponding activation vector element is ‘0.5’, halving it. An activation
     vector is also called a mask because it ‘masks’ (allows only a fraction of a
@@ -635,7 +638,7 @@
     Similar to the forget gate, the input gate is also equipped with a sigmoid
     layer which takes \(x_t\) and \(h_{{ "{t-1}" }}\) as inputs. However, this
     gate decides which values of the cell state should be updated based on the
-    current input and the old cell state. Symbolically, this gate is written as:
+    current input and the old cell state. This gate is written as:
   </p>
   \(i_t=\sigma(W_ix_t+U_ih_{{ "{t-1}" }}+b_i)\)
   <p>
@@ -673,7 +676,7 @@
     and \(b_c\) represent the weights corresponding to \(x_t\), the recurrent
     weights and the biases, respectively. The tanh activation function is used
     instead of sigmoid because changes to the cell state can be positive
-    <em>or</em> negative; tanh’s output ranges from -1 to 1 whereas sigmoid’s is
+    <em>or negative</em>; tanh’s output ranges from -1 to 1 whereas sigmoid’s is
     from 0 to 1, which is not appropriate.
   </p>
   <p>
@@ -779,38 +782,32 @@
   </p>
   <h4>Round and Round...</h4>
   <p>
-    The above process simply repeats for every new input to the LSTM network
+    The above process repeats for every new input to the LSTM network
     (e.g. every word in the book review). At the beginning, when \(t=0\), \(c_{{
     "{t-1}" }}\) and \(h_{{ "{t-1}" }}\) are considered to be vectors filled
-    with zeroes to give the LSTM a clean slate to write on. In addition to being
-    capable of easily retaining long-term information in the cell state, an LSTM
-    network reduces the vanishing gradient problem because its cell state does
-    not pass through an activation function with a derivative smaller in
-    magnitude than 1 (e.g., sigmoid) and because it can learn to control the
-    other factors in the cell state derivative to impede its vanishing when
-    going back many units in time.
+    with zeroes to give the LSTM a clean slate to write on. The retention of
+    information in the cell-state by not applying an activation function to it,
+    for example, reduces the vanishing gradient problem.
   </p>
   <p>
     By now, I think it’s pretty obvious that LSTMs are pretty complex, slowing
     down training and prediction. This is why we’ll now look at a simpler (and
-    faster) variant of LSTM networks and see how it functions.
+    faster) variant of LSTM networks.
   </p>
   <h3>Gated Recurrent Unit</h3>
   <p>
-    The GRU (gated recurrent unit) was
-    <a href="https://arxiv.org/abs/1406.1078"
-      >introduced in 2014 by Kyunghyun Cho et al.</a
-    >
-    and is simpler than the original LSTM: the whole of the cell state is
-    encapsulated in the output of the cell and the forget gate and input gate
-    are combined into an update gate. The output gate is removed and a new reset
-    gate is added that decides how much the update to the old cell state will
-    depend on the values of the old cell state, similar to the output gate of an
-    LSTM, which decides how useful the cell state will be for the next cell’s
-    gates. Although simpler, GRUs have been shown to have a similar accuracy as
-    LSTM networks (and even a better one for smaller training datasets), with
-    the benefit of less operations required to function. We’ll now quickly go
-    over how a GRU works.
+    The GRU (gated recurrent unit)
+    was <a href="https://arxiv.org/abs/1406.1078">introduced in 2014 by
+    Kyunghyun Cho et al.</a> and is simpler than the original LSTM: the whole of
+    the cell state is encapsulated in the output of the cell and the forget gate
+    and input gate are combined into an update gate. The output gate is removed
+    and a new reset gate is added that decides how much the update to the old
+    cell state will depend on the values of the old cell state, similar to the
+    output gate of an LSTM, which decides how useful the cell state will be for
+    the next cell’s gates. Although simpler, GRUs have proved to have a
+    comparative accuracy as LSTM networks (and even a better one for smaller
+    training datasets), with the benefit of less operations. We’ll now quickly
+    go over how a GRU works.
   </p>
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -16 480 288">
     <defs>
@@ -1026,37 +1023,27 @@
     numbers, preferrably grouping together the representations of words that
     have similar meanings.
   </p>
-  <h2>Text Vectorisation</h2>
+  <h2>Text vectorisation</h2>
   <p>
-    Usually, text is encoded by creating a list of known words (referred to as
-    the vocabulary) and assigning an index to each, then substituting the words
-    in a sample with the corresponding indices. This forms a vector of indices,
-    hence the process of encoding is referred to as ‘text vectorisation’. In
-    many cases, words are sorted before assigning indices, with more frequent
-    words assigned lesser indices, in hopes of allowing the network to more
-    easily neglect words with larger indices, which might not be as important to
-    understanding a text. Sometimes, very rare words are even discarded from the
-    vocabulary because the model might not have enough context to accurately
-    learn their meanings.
+    The vocabulary of the network can be represented as a list of known words,
+    each with a numerical index.  To convert a textual input into a numerical
+    one, the words are substituted with the indices.  Sometimes, the indices are
+    assigned with purpose, and less frequent words might not receive an index.
   </p>
   <p>
-    However, there is one small problem: sentences that include words which are
-    not part of the existing vocabulary cannot be encoded. To solve this, there
-    is an additional index (usually the smallest) that is reserved for replacing
-    unknown words. This way, the structure of the sample is preserved, whereas
-    simply omitting unknown words could encourage the neural network to
+    However, sentences that include words which are not part of the existing
+    vocabulary cannot be encoded. To solve this, there can be an additional
+    index for unknown words. This way, the structure of the sample is preserved,
+    whereas simply omitting unknown words could encourage the neural network to
     misunderstand the sentence.
   </p>
   <h2>Embedding</h2>
   <p>
-    To improve performance, encoded text undergoes ‘embedding’, which replaces
-    each index with a vector that best represents the corresponding word’s
-    meaning. This alleviates the RNN of having to link similar words together
-    and significantly improves model performance. For example, ‘child’ and ‘kid’
-    might be assigned similar vectors to simplify the network’s task. Embedding
-    is usually done by storing a list of vectors whose indices match the ones of
-    the encoded words they map to. During training, each vector is then tweaked
-    to better match the meaning of its corresponding word.
+    To alleviate the network of coming up with a more semantic representation of
+    these indices, the indices undergo ‘embedding’, which replaces each index
+    with a vector that best represents the corresponding word’s meaning.  Now,
+    the RNN can operate on meanings instead of on the words that denote them.
+    For example, ‘child’ and ‘kid’ should be assigned similar vectors.
   </p>
   <h2>Putting It All Together</h2>
   <p>
@@ -1156,9 +1143,7 @@ Requirement already satisfied: oauthlib>=3.0.0 in ./.venv/lib/python3.9/site-pac
   </p>
   <app-cell [index]="3"></app-cell>
   <p>
-    Now, we define some constants that we will later use in our program. Note
-    that by ‘constants’, I mean values that <em>we</em> will not be changing;
-    they will always be variables in Python.
+    Now, we define some constants that we will later use in our program.
   </p>
   <app-cell [index]="4"></app-cell>
   <h3>Loading the Dataset</h3>
@@ -1265,17 +1250,15 @@ TensorBoard 2.6.0 at http://localhost:6007/ (Press CTRL+C to quit)</code></pre>
   <h2>Conclusion</h2>
   <p>
     Recurrent neural networks are a great approach to processing interconnected
-    data of varying lengths. However, backpropagating vanilla RNNs can be a pain
-    because gradients tend to vanish or explode with many common activation
-    functions. Vanilla RNNs also have a hard time retaining information for many
-    iterations because they just don’t have a dedicated mechanism to store it
-    and learning how to do it themselves proves to be mostly unsuccessful.
-    Luckily, different RNN adaptations exist, such as the LSTM and GRU, that are
-    designed to innately remember things and can easily learn to prevent their
-    gradients from vanishing or exploding by regulating them with their gates.
-    To demonstrate the approach to classifying text using a GRU, we went through
-    the example of an online bookstore and built a book review classifier using
-    TensorFlow.
+    data of varying lengths. However, training vanilla RNNs becomes difficult if
+    gradients vanish or explode. Vanilla RNNs also have a hard time retaining
+    information for many iterations because they just don’t have a dedicated
+    mechanism to store it and learning how to do it themselves proves to be
+    mostly unsuccessful.  Luckily, different RNN adaptations exist, such as the
+    LSTM and GRU, that are designed to preserve more information over time and,
+    as an effect, prevent gradients from vanishing.  To demonstrate the approach
+    to classifying text using a GRU, we went through the example of an online
+    bookstore and built a book review classifier using TensorFlow.
   </p>
   <p>
     I hope you found this post useful. If you have any feedback, please drop me
